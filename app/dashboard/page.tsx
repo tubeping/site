@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ProductManagement from "./_components/product-management";
 import ChannelAnalytics from "./_components/channel-analytics";
+import ShopCustomize from "./_components/ShopCustomize";
 
 type MenuKey = "shop" | "products" | "analytics" | "settlement";
 
@@ -83,7 +84,7 @@ export default function DashboardPage() {
   const [activeMenu, setActiveMenu] = useState<MenuKey>("shop");
 
   const content: Record<MenuKey, React.ReactNode> = {
-    shop: <ShopPreview />,
+    shop: <ShopCustomize />,
     products: <ProductManagement />,
     analytics: <ChannelAnalytics />,
     settlement: <SettlementPlaceholder />,
