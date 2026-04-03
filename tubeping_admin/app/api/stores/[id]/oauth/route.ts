@@ -32,14 +32,18 @@ export async function GET(
   authUrl.searchParams.set("state", id); // store id를 state로 전달
   authUrl.searchParams.set("redirect_uri", redirectUri);
   authUrl.searchParams.set("scope", [
-    "mall.read_store",
+    "mall.read_application",
+    "mall.write_application",
+    "mall.read_category",
+    "mall.write_category",
     "mall.read_product",
     "mall.write_product",
-    "mall.read_category",
-    "mall.read_shipping",
-    "mall.write_shipping",
-    "mall.read_order",
+    "mall.read_collection",
+    "mall.write_collection",
     "mall.read_supply",
+    "mall.write_supply",
+    "mall.read_order",
+    "mall.write_order",
   ].join(","));
 
   return NextResponse.redirect(authUrl.toString());
