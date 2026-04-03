@@ -1278,16 +1278,26 @@ function MappingsTab({
 }) {
   const activeStores = stores.filter((s) => s.status === "active" || s.status === "connected");
   const [filterStoreId, setFilterStoreId] = useState("");
+  const [expandedStoreId, setExpandedStoreId] = useState<string | null>(null);
+  const [viewFilter, setViewFilter] = useState<"mapped" | "unmapped">("mapped");
 
   // 스토어별 매핑 현황
-  const storeMap = new Map<string, { store: Store; mappings: { product: Product; mapping: Cafe24Mapping }[] }>();
+  const storeMap = new Map<string, { store: Store; mappings: { product: Product; mapping: Cafe24Mapping }[]; unmapped: Product[] }>();
   for (const s of activeStores) {
-    storeMap.set(s.id, { store: s, mappings: [] });
+    storeMap.set(s.id, { store: s, mappings: [], unmapped: [] });
   }
   for (const p of products) {
+    const mappedStoreIds = new Set((p.product_cafe24_mappings || []).map((m) => m.store_id));
     for (const m of p.product_cafe24_mappings || []) {
       const entry = storeMap.get(m.store_id);
       if (entry) entry.mappings.push({ product: p, mapping: m });
+    }
+    // 미매핑 상품 계산
+    for (const s of activeStores) {
+      if (!mappedStoreIds.has(s.id)) {
+        const entry = storeMap.get(s.id);
+        if (entry) entry.unmapped.push(p);
+      }
     }
   }
 
@@ -1314,59 +1324,147 @@ function MappingsTab({
       ) : (
         [...storeMap.entries()]
           .filter(([id]) => !filterStoreId || id === filterStoreId)
-          .map(([id, { store, mappings }]) => (
-            <div key={id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="px-6 py-4 flex items-center justify-between bg-gray-50 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#C41E1E] flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">{store.name.slice(0, 2)}</span>
+          .map(([id, { store, mappings, unmapped }]) => {
+            const isExpanded = expandedStoreId === id;
+            return (
+              <div key={id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                {/* 스토어 헤더 — 클릭으로 펼치기/접기 */}
+                <div
+                  onClick={() => setExpandedStoreId(isExpanded ? null : id)}
+                  className="px-6 py-4 flex items-center justify-between bg-gray-50 border-b border-gray-100 cursor-pointer hover:bg-gray-100/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#C41E1E] flex items-center justify-center">
+                      <span className="text-white font-bold text-xs">{store.name.slice(0, 2)}</span>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900">{store.name}</h3>
+                      <p className="text-xs text-gray-400">{store.mall_id}.cafe24.com</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900">{store.name}</h3>
-                    <p className="text-xs text-gray-400">{store.mall_id}.cafe24.com · {store.channel || ""}</p>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold text-green-600">{mappings.length}개 매핑</span>
+                      {unmapped.length > 0 && (
+                        <span className="text-sm font-bold text-orange-500">{unmapped.length}개 미매핑</span>
+                      )}
+                    </div>
+                    <svg className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
                   </div>
                 </div>
-                <span className="text-sm font-bold text-gray-900">{mappings.length}개 매핑</span>
-              </div>
 
-              {mappings.length === 0 ? (
-                <div className="py-8 text-center text-sm text-gray-400">매핑된 상품이 없습니다.</div>
-              ) : (
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-[11px] text-gray-400 border-b border-gray-50">
-                      <th className="text-left px-6 py-2 font-medium">TP코드</th>
-                      <th className="text-left px-3 py-2 font-medium">상품명</th>
-                      <th className="text-left px-3 py-2 font-medium">카페24 코드</th>
-                      <th className="text-right px-3 py-2 font-medium">판매가</th>
-                      <th className="text-center px-3 py-2 font-medium">동기화</th>
-                      <th className="text-center px-6 py-2 font-medium">관리</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mappings.map(({ product: p, mapping: m }) => (
-                      <tr key={m.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/30">
-                        <td className="px-6 py-2.5">
-                          <span className="text-xs font-mono font-bold text-[#C41E1E] bg-[#FFF0F5] px-2 py-0.5 rounded">{p.tp_code}</span>
-                        </td>
-                        <td className="px-3 py-2.5 text-sm text-gray-900 line-clamp-1 max-w-[200px]">{p.product_name}</td>
-                        <td className="px-3 py-2.5 text-xs text-gray-400 font-mono">{m.cafe24_product_code || "-"}</td>
-                        <td className="px-3 py-2.5 text-sm text-gray-700 text-right">{formatPrice(p.price)}</td>
-                        <td className="px-3 py-2.5 text-center">
-                          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${SYNC_STATUS[m.sync_status]?.cls || "bg-gray-100 text-gray-500"}`}>
-                            {SYNC_STATUS[m.sync_status]?.label || m.sync_status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-2.5 text-center">
-                          <button onClick={() => removeMapping(p.id, m.store_id)} className="text-xs text-gray-400 hover:text-red-500 cursor-pointer">해제</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          ))
+                {/* 펼쳐진 내용 */}
+                {isExpanded && (
+                  <div>
+                    {/* 매핑/미매핑 토글 */}
+                    <div className="px-6 py-2 bg-white border-b border-gray-100 flex items-center gap-2">
+                      <button
+                        onClick={() => setViewFilter("mapped")}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg cursor-pointer transition-colors ${viewFilter === "mapped" ? "bg-green-100 text-green-700" : "text-gray-500 hover:bg-gray-100"}`}
+                      >
+                        매핑됨 ({mappings.length})
+                      </button>
+                      <button
+                        onClick={() => setViewFilter("unmapped")}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg cursor-pointer transition-colors ${viewFilter === "unmapped" ? "bg-orange-100 text-orange-700" : "text-gray-500 hover:bg-gray-100"}`}
+                      >
+                        미매핑 ({unmapped.length})
+                      </button>
+                    </div>
+
+                    {/* 매핑된 상품 목록 */}
+                    {viewFilter === "mapped" && (
+                      mappings.length === 0 ? (
+                        <div className="py-8 text-center text-sm text-gray-400">매핑된 상품이 없습니다.</div>
+                      ) : (
+                        <table className="w-full">
+                          <thead>
+                            <tr className="text-[11px] text-gray-400 border-b border-gray-50">
+                              <th className="text-left px-6 py-2 font-medium">TP코드</th>
+                              <th className="text-left px-3 py-2 font-medium">상품명</th>
+                              <th className="text-left px-3 py-2 font-medium">카페24 코드</th>
+                              <th className="text-right px-3 py-2 font-medium">판매가</th>
+                              <th className="text-center px-3 py-2 font-medium">동기화</th>
+                              <th className="text-center px-6 py-2 font-medium">관리</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {mappings.slice(0, 50).map(({ product: p, mapping: m }) => (
+                              <tr key={m.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/30">
+                                <td className="px-6 py-2.5">
+                                  <span className="text-xs font-mono font-bold text-[#C41E1E] bg-[#FFF0F5] px-2 py-0.5 rounded">{p.tp_code}</span>
+                                </td>
+                                <td className="px-3 py-2.5 text-sm text-gray-900 line-clamp-1 max-w-[200px]">{p.product_name}</td>
+                                <td className="px-3 py-2.5 text-xs text-gray-400 font-mono">{m.cafe24_product_code || "-"}</td>
+                                <td className="px-3 py-2.5 text-sm text-gray-700 text-right">{formatPrice(p.price)}</td>
+                                <td className="px-3 py-2.5 text-center">
+                                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${SYNC_STATUS[m.sync_status]?.cls || "bg-gray-100 text-gray-500"}`}>
+                                    {SYNC_STATUS[m.sync_status]?.label || m.sync_status}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-2.5 text-center">
+                                  <button onClick={() => removeMapping(p.id, m.store_id)} className="text-xs text-gray-400 hover:text-red-500 cursor-pointer">해제</button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          {mappings.length > 50 && (
+                            <tfoot>
+                              <tr><td colSpan={6} className="px-6 py-2 text-xs text-gray-400 text-center">외 {mappings.length - 50}개 더...</td></tr>
+                            </tfoot>
+                          )}
+                        </table>
+                      )
+                    )}
+
+                    {/* 미매핑 상품 목록 */}
+                    {viewFilter === "unmapped" && (
+                      unmapped.length === 0 ? (
+                        <div className="py-8 text-center text-sm text-green-500 font-medium">모든 상품이 매핑되어 있습니다.</div>
+                      ) : (
+                        <div>
+                          <div className="px-6 py-2 bg-orange-50 border-b border-orange-100">
+                            <p className="text-xs text-orange-600">이 스토어에 매핑되지 않은 상품입니다. 해당 카페24 몰에 같은 자체코드로 상품이 등록되어 있어야 매핑 가능합니다.</p>
+                          </div>
+                          <table className="w-full">
+                            <thead>
+                              <tr className="text-[11px] text-gray-400 border-b border-gray-50">
+                                <th className="text-left px-6 py-2 font-medium">TP코드</th>
+                                <th className="text-left px-3 py-2 font-medium">상품명</th>
+                                <th className="text-right px-3 py-2 font-medium">판매가</th>
+                                <th className="text-center px-3 py-2 font-medium">상태</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {unmapped.slice(0, 50).map((p) => (
+                                <tr key={p.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/30">
+                                  <td className="px-6 py-2.5">
+                                    <span className="text-xs font-mono font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded">{p.tp_code}</span>
+                                  </td>
+                                  <td className="px-3 py-2.5 text-sm text-gray-900 line-clamp-1 max-w-[250px]">{p.product_name}</td>
+                                  <td className="px-3 py-2.5 text-sm text-gray-700 text-right">{formatPrice(p.price)}</td>
+                                  <td className="px-3 py-2.5 text-center">
+                                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">미매핑</span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            {unmapped.length > 50 && (
+                              <tfoot>
+                                <tr><td colSpan={4} className="px-6 py-2 text-xs text-gray-400 text-center">외 {unmapped.length - 50}개 더...</td></tr>
+                              </tfoot>
+                            )}
+                          </table>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })
       )}
     </div>
   );
