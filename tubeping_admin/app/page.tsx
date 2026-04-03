@@ -19,8 +19,8 @@ const RECENT_ORDERS = [
 ];
 
 const TASKS = [
-  { title: "4월 프로모션 콘텐츠 작성", assignee: "마케팅팀", due: "04/05", priority: "높음" },
-  { title: "신규 공급사 상품 등록", assignee: "상품팀", due: "04/03", priority: "중간" },
+  { title: "Vercel 카페24 환경변수 업데이트", assignee: "개발팀", due: "04/03", priority: "높음" },
+  { title: "상품관리 옵션/재고/카페24 동기화", assignee: "개발팀", due: "04/05", priority: "높음" },
   { title: "3월 정산 마감", assignee: "재무팀", due: "04/07", priority: "높음" },
 ];
 

@@ -14,15 +14,23 @@ type Task = {
 };
 
 const INITIAL_TASKS: Task[] = [
-  { id: 1, title: "4월 프로모션 기획서 작성", assignee: "마케팅팀", priority: "높음", due: "04/05", status: "in_progress" },
-  { id: 2, title: "신규 공급사 계약 검토", assignee: "사업팀", priority: "높음", due: "04/03", status: "todo" },
-  { id: 3, title: "3월 정산 마감 처리", assignee: "재무팀", priority: "높음", due: "04/07", status: "in_progress" },
-  { id: 4, title: "상품 이미지 리사이징 자동화", assignee: "개발팀", priority: "중간", due: "04/10", status: "todo" },
+  // 할 일
+  { id: 1, title: "Vercel 환경변수 카페24 키 업데이트 (CAFE24_CLIENT_ID/SECRET)", assignee: "개발팀", priority: "높음", due: "04/03", status: "todo" },
+  { id: 2, title: "Supabase DB 마이그레이션 실행 (products, orders 테이블)", assignee: "개발팀", priority: "높음", due: "04/04", status: "todo" },
+  { id: 3, title: "카페24 마진율(margin_rate) UI 표시", assignee: "개발팀", priority: "중간", due: "04/07", status: "todo" },
+  { id: 4, title: "4월 프로모션 콘텐츠 기획", assignee: "마케팅팀", priority: "중간", due: "04/05", status: "todo" },
   { id: 5, title: "SEO 키워드 리서치 (4월)", assignee: "콘텐츠팀", priority: "중간", due: "04/08", status: "todo" },
-  { id: 6, title: "채널 분석 리포트 v2 배포", assignee: "데이터팀", priority: "낮음", due: "04/12", status: "todo" },
-  { id: 7, title: "공급사 API 연동 테스트", assignee: "개발팀", priority: "중간", due: "04/06", status: "in_progress" },
-  { id: 8, title: "2월 매출 리포트 공유", assignee: "재무팀", priority: "낮음", due: "03/28", status: "done" },
-  { id: 9, title: "인플루언서 온보딩 UX 개선", assignee: "디자인팀", priority: "중간", due: "03/30", status: "done" },
+  // 진행 중
+  { id: 6, title: "어드민 사이드바 네비게이션 버그 수정", assignee: "개발팀", priority: "높음", due: "04/03", status: "in_progress" },
+  { id: 7, title: "상품관리 — 옵션/재고/카페24 동기화", assignee: "개발팀", priority: "높음", due: "04/05", status: "in_progress" },
+  { id: 8, title: "3월 정산 마감 처리", assignee: "재무팀", priority: "높음", due: "04/07", status: "in_progress" },
+  // 완료
+  { id: 9, title: "사이드바 href /admin 이중 적용 수정", assignee: "개발팀", priority: "높음", due: "04/03", status: "done" },
+  { id: 10, title: "카페24 상품 가져오기 (자체코드 포함)", assignee: "개발팀", priority: "높음", due: "04/02", status: "done" },
+  { id: 11, title: "카페24 OAuth 연동 완료", assignee: "개발팀", priority: "높음", due: "04/01", status: "done" },
+  { id: 12, title: "스토어 관리 페이지 구축", assignee: "개발팀", priority: "중간", due: "04/01", status: "done" },
+  { id: 13, title: "주문/발주/공급사 관리 페이지 구축", assignee: "개발팀", priority: "중간", due: "04/02", status: "done" },
+  { id: 14, title: "tubeping_admin 프로젝트 분리", assignee: "개발팀", priority: "높음", due: "03/31", status: "done" },
 ];
 
 const COLUMNS: { key: TaskStatus; label: string; color: string }[] = [
