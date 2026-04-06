@@ -179,18 +179,21 @@ export async function POST(
       if (product.description) newProduct.simple_description = product.description;
       if (product.image_url) newProduct.list_image = product.image_url;
 
-      const createRes = await cafe24Post(store.mall_id, token, newProduct);
-
-      if (createRes.ok && createRes.product_no) {
-        await sb.from("product_cafe24_mappings").update({
-          cafe24_product_no: createRes.product_no,
-          sync_status: "synced",
-          last_sync_at: new Date().toISOString(),
-        }).eq("id", mapping.id);
-        results.push({ store_id: store.id, mall_id: store.mall_id, status: "created" });
-      } else {
-        await sb.from("product_cafe24_mappings").update({ sync_status: "error" }).eq("id", mapping.id);
-        results.push({ store_id: store.id, mall_id: store.mall_id, status: "error", error: `생성 실패 (${createRes.status})` });
+      try {
+        const createRes = await cafe24Post(store.mall_id, token, newProduct);
+        if (createRes.ok && createRes.product_no) {
+          await sb.from("product_cafe24_mappings").update({
+            cafe24_product_no: createRes.product_no,
+            sync_status: "synced",
+            last_sync_at: new Date().toISOString(),
+          }).eq("id", mapping.id);
+          results.push({ store_id: store.id, mall_id: store.mall_id, status: "created" });
+        } else {
+          // 생성 실패 — 해당 몰에 등록 불가 (스킵 처리)
+          results.push({ store_id: store.id, mall_id: store.mall_id, status: "skipped", error: `생성 불가 (${createRes.status})` });
+        }
+      } catch {
+        results.push({ store_id: store.id, mall_id: store.mall_id, status: "skipped", error: "생성 중 오류" });
       }
       continue;
     }
@@ -225,13 +228,21 @@ export async function POST(
   }
 
   const syncedCount = results.filter((r) => r.status === "synced").length;
+  const createdCount = results.filter((r) => r.status === "created").length;
   const errorCount = results.filter((r) => r.status === "error").length;
+  const skippedCount = results.filter((r) => r.status === "skipped").length;
+
+  const parts = [];
+  if (syncedCount > 0) parts.push(`${syncedCount}개 동기화`);
+  if (createdCount > 0) parts.push(`${createdCount}개 신규생성`);
+  if (skippedCount > 0) parts.push(`${skippedCount}개 스킵`);
+  if (errorCount > 0) parts.push(`${errorCount}개 실패`);
 
   return NextResponse.json({
-    success: true,
-    synced: syncedCount,
+    success: syncedCount + createdCount > 0,
+    synced: syncedCount + createdCount,
     errors: errorCount,
     results,
-    message: `${syncedCount}개 스토어 동기화 완료${errorCount > 0 ? `, ${errorCount}개 실패` : ""}`,
+    message: parts.join(", ") || "동기화 대상 없음",
   });
 }
