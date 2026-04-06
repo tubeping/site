@@ -84,6 +84,21 @@ async function cafe24Put(mallId: string, token: string, productNo: number, updat
   return { ok: res.ok, status: res.status };
 }
 
+async function cafe24Post(mallId: string, token: string, product: Record<string, unknown>): Promise<{ ok: boolean; status: number; product_no?: number }> {
+  const res = await fetch(`https://${mallId}.cafe24api.com/api/v2/admin/products`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "X-Cafe24-Api-Version": API_VERSION,
+    },
+    body: JSON.stringify({ shop_no: 1, request: product }),
+  });
+  if (!res.ok) return { ok: false, status: res.status };
+  const data = await res.json();
+  return { ok: true, status: res.status, product_no: data?.product?.product_no };
+}
+
 async function cafe24PutVariant(mallId: string, token: string, productNo: number, variantCode: string, update: Record<string, unknown>) {
   const res = await fetch(`https://${mallId}.cafe24api.com/api/v2/admin/products/${productNo}/variants/${variantCode}`, {
     method: "PUT",
@@ -138,13 +153,6 @@ export async function POST(
   const results: { store_id: string; mall_id: string; status: string; error?: string }[] = [];
 
   for (const mapping of mappings) {
-    if (!mapping.cafe24_product_no) {
-      // 카페24 상품번호 없으면 스킵
-      await sb.from("product_cafe24_mappings").update({ sync_status: "error" }).eq("id", mapping.id);
-      results.push({ store_id: mapping.store_id, mall_id: "?", status: "error", error: "카페24 상품번호 없음" });
-      continue;
-    }
-
     // 스토어 정보 로드
     const { data: store } = await sb
       .from("stores")
@@ -158,7 +166,7 @@ export async function POST(
       continue;
     }
 
-    // 마스터몰인 경우
+    // 토큰 가져오기
     let token: string | null = null;
     if (store.mall_id === MASTER_MALL_ID) {
       try { token = await getMasterToken(); } catch { token = null; }
@@ -172,11 +180,42 @@ export async function POST(
       continue;
     }
 
-    // 카페24 API로 상품 기본 정보 수정
+    const tpVariants = product.product_variants || [];
+
+    // cafe24_product_no가 없으면 → 신규 생성 (POST)
+    if (!mapping.cafe24_product_no) {
+      const newProduct: Record<string, unknown> = {
+        product_name: product.product_name,
+        price: String(product.price),
+        supply_price: String(product.supply_price),
+        retail_price: String(product.retail_price),
+        selling: product.selling,
+        custom_product_code: product.tp_code,
+        display: "T",
+      };
+      if (product.description) newProduct.simple_description = product.description;
+      if (product.image_url) newProduct.list_image = product.image_url;
+
+      const createRes = await cafe24Post(store.mall_id, token, newProduct);
+
+      if (createRes.ok && createRes.product_no) {
+        await sb.from("product_cafe24_mappings").update({
+          cafe24_product_no: createRes.product_no,
+          sync_status: "synced",
+          last_sync_at: new Date().toISOString(),
+        }).eq("id", mapping.id);
+        results.push({ store_id: store.id, mall_id: store.mall_id, status: "created" });
+      } else {
+        await sb.from("product_cafe24_mappings").update({ sync_status: "error" }).eq("id", mapping.id);
+        results.push({ store_id: store.id, mall_id: store.mall_id, status: "error", error: `생성 실패 (${createRes.status})` });
+      }
+      continue;
+    }
+
+    // cafe24_product_no가 있으면 → 기존 수정 (PUT)
     const res = await cafe24Put(store.mall_id, token, mapping.cafe24_product_no, syncData);
 
     // 배리언트(재고/옵션) 동기화
-    const tpVariants = product.product_variants || [];
     if (res.ok && tpVariants.length > 0) {
       for (const v of tpVariants) {
         if (!v.variant_code) continue;

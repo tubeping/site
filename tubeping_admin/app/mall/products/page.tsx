@@ -779,6 +779,7 @@ export default function ProductsPage() {
         <AddProductModal
           onClose={() => setShowAddModal(false)}
           onCreated={() => { setShowAddModal(false); fetchProducts(true); }}
+          stores={stores}
         />
       )}
 
@@ -800,7 +801,7 @@ export default function ProductsPage() {
    상품 등록 모달
    ══════════════════════════════════════════ */
 
-function AddProductModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+function AddProductModal({ onClose, onCreated, stores }: { onClose: () => void; onCreated: () => void; stores: Store[] }) {
   const [form, setForm] = useState({
     product_name: "",
     price: "",
@@ -813,12 +814,28 @@ function AddProductModal({ onClose, onCreated }: { onClose: () => void; onCreate
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [syncToStores, setSyncToStores] = useState(true);
+  const [selectedStoreIds, setSelectedStoreIds] = useState<Set<string>>(
+    new Set(stores.filter((s) => s.status === "active" || s.status === "connected").map((s) => s.id))
+  );
+  const [syncResult, setSyncResult] = useState("");
+
+  const toggleStore = (id: string) => {
+    setSelectedStoreIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const handleSave = async () => {
     if (!form.product_name.trim()) { setError("상품명을 입력하세요"); return; }
     setSaving(true);
     setError("");
+    setSyncResult("");
     try {
+      // 1. TubePing DB에 상품 등록
       const res = await fetch("/admin/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -833,7 +850,30 @@ function AddProductModal({ onClose, onCreated }: { onClose: () => void; onCreate
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "등록 실패");
       }
-      onCreated();
+      const { product } = await res.json();
+
+      // 2. 선택된 스토어에 매핑 생성 (cafe24_product_no 없이 → 동기화 시 POST)
+      if (syncToStores && selectedStoreIds.size > 0) {
+        for (const storeId of selectedStoreIds) {
+          await fetch(`/admin/api/products/${product.id}/mappings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ store_id: storeId }),
+          });
+        }
+
+        // 3. 동기화 실행 (매핑된 스토어에 상품 생성)
+        const syncRes = await fetch(`/admin/api/products/${product.id}/sync`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (syncRes.ok) {
+          const syncData = await syncRes.json();
+          setSyncResult(syncData.message);
+        }
+      }
+
+      setTimeout(() => onCreated(), syncToStores ? 1500 : 300);
     } catch (e) {
       setError(e instanceof Error ? e.message : "등록 실패");
     } finally {
@@ -917,6 +957,35 @@ function AddProductModal({ onClose, onCreated }: { onClose: () => void; onCreate
           <Field label="관리자 메모">
             <textarea value={form.memo} onChange={(e) => setForm({ ...form, memo: e.target.value })} rows={2} placeholder="내부 참고용 메모..." className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C41E1E]/20 focus:border-[#C41E1E]" />
           </Field>
+
+          {/* 카페24 스토어 동시 등록 */}
+          <div className="border-t border-gray-200 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={syncToStores} onChange={(e) => setSyncToStores(e.target.checked)} className="rounded border-gray-300" />
+                <span className="text-sm font-medium text-gray-900">카페24 스토어에 동시 등록</span>
+              </label>
+              {syncToStores && (
+                <span className="text-xs text-gray-400">{selectedStoreIds.size}개 선택</span>
+              )}
+            </div>
+            {syncToStores && (
+              <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
+                {stores.filter((s) => s.status === "active" || s.status === "connected").map((s) => (
+                  <label key={s.id} className="flex items-center gap-2.5 px-3 py-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <input type="checkbox" checked={selectedStoreIds.has(s.id)} onChange={() => toggleStore(s.id)} className="rounded border-gray-300" />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium text-gray-900">{s.name}</span>
+                      <span className="text-xs text-gray-400 ml-2">{s.mall_id}.cafe24.com</span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+            {syncResult && (
+              <div className="mt-3 p-3 bg-green-50 text-green-700 text-xs rounded-lg border border-green-200">{syncResult}</div>
+            )}
+          </div>
         </div>
       </div>
     </div>
