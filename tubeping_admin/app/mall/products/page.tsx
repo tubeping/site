@@ -180,39 +180,49 @@ export default function ProductsPage() {
     }
   };
 
-  /* ── 데이터 로드 ── */
+  /* ── 데이터 로드 (전체 로드) ── */
   const fetchProducts = useCallback(async (reset = false) => {
     setLoading(true);
     setError("");
-    const newOffset = reset ? 0 : offset;
-    const params = new URLSearchParams({ limit: "50", offset: String(newOffset) });
-    if (keyword) params.set("keyword", keyword);
-    if (catFilter) params.set("category", catFilter);
-    if (sellingFilter === "selling") params.set("selling", "T");
-    if (sellingFilter === "not_selling") params.set("selling", "F");
-    if (displayFilter === "displayed") params.set("display", "T");
-    if (displayFilter === "hidden") params.set("display", "F");
+
+    const baseParams = new URLSearchParams();
+    if (keyword) baseParams.set("keyword", keyword);
+    if (catFilter) baseParams.set("category", catFilter);
+    if (sellingFilter === "selling") baseParams.set("selling", "T");
+    if (sellingFilter === "not_selling") baseParams.set("selling", "F");
+    if (displayFilter === "displayed") baseParams.set("display", "T");
+    if (displayFilter === "hidden") baseParams.set("display", "F");
 
     try {
-      const res = await fetch(`/admin/api/products?${params}`);
-      if (!res.ok) throw new Error(`API 오류 (${res.status})`);
-      const data = await res.json();
-      const fetched: Product[] = data.products || [];
-      if (reset) {
-        setProducts(fetched);
-        setOffset(fetched.length);
-      } else {
-        setProducts((prev) => [...prev, ...fetched]);
-        setOffset(newOffset + fetched.length);
+      let allProducts: Product[] = [];
+      let currentOffset = 0;
+      const pageSize = 200;
+
+      while (true) {
+        const params = new URLSearchParams(baseParams);
+        params.set("limit", String(pageSize));
+        params.set("offset", String(currentOffset));
+
+        const res = await fetch(`/admin/api/products?${params}`);
+        if (!res.ok) throw new Error(`API 오류 (${res.status})`);
+        const data = await res.json();
+        const fetched: Product[] = data.products || [];
+        allProducts = allProducts.concat(fetched);
+        setTotal(data.total || allProducts.length);
+
+        if (fetched.length < pageSize) break;
+        currentOffset += pageSize;
       }
-      setTotal(data.total || fetched.length);
-      setHasMore(fetched.length >= 50);
+
+      setProducts(allProducts);
+      setOffset(allProducts.length);
+      setHasMore(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : "알 수 없는 오류");
     } finally {
       setLoading(false);
     }
-  }, [offset, keyword, catFilter, sellingFilter]);
+  }, [keyword, catFilter, sellingFilter, displayFilter]);
 
   const fetchStores = useCallback(async () => {
     setStoresLoading(true);
