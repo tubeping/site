@@ -142,7 +142,11 @@ function GongguTab({
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const FALLBACK_CATEGORIES = [
+    { id: 42, name: "식품" }, { id: 46, name: "건강" }, { id: 53, name: "생활" },
+    { id: 47, name: "패션/뷰티" }, { id: 52, name: "캠핑/여행" }, { id: 51, name: "디지털/가전" },
+  ];
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>(FALLBACK_CATEGORIES);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -161,8 +165,8 @@ function GongguTab({
       const res = await fetch("/api/cafe24/categories");
       if (!res.ok) return;
       const data = await res.json();
-      setCategories(data.categories || []);
-    } catch { /* ignore */ }
+      if (data.categories?.length > 0) setCategories(data.categories);
+    } catch { /* 폴백 카테고리 유지 */ }
   }, []);
 
   const fetchProducts = useCallback(async (opts?: { keyword?: string; category?: number | null; append?: boolean }) => {
@@ -246,45 +250,42 @@ function GongguTab({
           <h3 className="mb-3 text-sm font-semibold text-gray-900">
             내 공구 PICK <span className="text-[#C41E1E]">{gongguPicks.length}</span>
           </h3>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {gongguPicks.map((pick) => (
-              <div key={pick.id} className={`overflow-hidden rounded-xl border transition-colors ${pick.visible ? "border-[#C41E1E]" : "border-gray-200 opacity-60"}`}>
-                <div className="relative aspect-square bg-gray-100">
+              <div key={pick.id} className={`overflow-hidden rounded-lg border transition-colors ${pick.visible ? "border-[#C41E1E]" : "border-gray-200 opacity-60"}`}>
+                <div className="relative aspect-[4/3] bg-gray-100">
                   {pick.image ? (
                     <img src={pick.image} alt="" className="h-full w-full object-cover" />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-gray-300">{IMAGE_PLACEHOLDER}</div>
+                    <div className="flex h-full items-center justify-center text-gray-300"><svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
                   )}
-                  <span className="absolute left-2 top-2 rounded-full bg-[#C41E1E] px-2 py-0.5 text-[10px] font-medium text-white">공구</span>
-                  {pick.category && <span className="absolute right-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">{pick.category}</span>}
+                  <span className="absolute left-1.5 top-1.5 rounded bg-[#C41E1E] px-1.5 py-0.5 text-[9px] font-medium text-white">공구</span>
                 </div>
-                <div className="p-3">
-                  <p className="line-clamp-2 text-sm font-medium text-gray-900 leading-snug min-h-[2.5rem]">{pick.name}</p>
-                  <p className="mt-1 text-base font-bold text-[#C41E1E]">{formatPrice(pick.price)}</p>
-                  <div className="mt-1.5 flex gap-3 text-[11px] text-gray-500">
-                    <span>클릭 <b className="text-gray-900">{pick.clicks}</b></span>
-                    <span>전환 <b className="text-gray-900">{pick.conversions}</b></span>
-                    {pick.revenue > 0 && <span>수익 <b className="text-[#C41E1E]">{formatPrice(pick.revenue)}</b></span>}
+                <div className="p-2">
+                  <p className="line-clamp-1 text-xs font-medium text-gray-900">{pick.name}</p>
+                  <p className="mt-0.5 text-sm font-bold text-[#C41E1E]">{formatPrice(pick.price)}</p>
+                  <div className="mt-1 flex gap-2 text-[10px] text-gray-400">
+                    <span>클릭 {pick.clicks}</span><span>전환 {pick.conversions}</span>
                   </div>
                   {editingId === pick.id ? (
-                    <div className="mt-2 flex gap-1.5">
-                      <input type="text" value={commentDraft} onChange={(e) => setCommentDraft(e.target.value)} placeholder="코멘트 입력"
-                        className="flex-1 rounded border border-gray-300 px-2 py-1 text-[11px] outline-none focus:border-[#C41E1E]"
+                    <div className="mt-1.5 flex gap-1">
+                      <input type="text" value={commentDraft} onChange={(e) => setCommentDraft(e.target.value)} placeholder="코멘트"
+                        className="flex-1 rounded border border-gray-300 px-1.5 py-0.5 text-[10px] outline-none focus:border-[#C41E1E]"
                         onKeyDown={(e) => { if (e.key === "Enter") { onEditComment(pick.id, commentDraft); setEditingId(null); } }} />
                       <button onClick={() => { onEditComment(pick.id, commentDraft); setEditingId(null); }}
-                        className="cursor-pointer rounded bg-[#C41E1E] px-2 py-1 text-[10px] text-white">저장</button>
+                        className="cursor-pointer rounded bg-[#C41E1E] px-1.5 py-0.5 text-[9px] text-white">저장</button>
                     </div>
-                  ) : (
+                  ) : pick.curation_comment ? (
                     <button onClick={() => { setEditingId(pick.id); setCommentDraft(pick.curation_comment); }}
-                      className="mt-2 block w-full text-left text-[11px] text-gray-500 hover:text-gray-700 cursor-pointer">
-                      {pick.curation_comment ? <span className="italic">&ldquo;{pick.curation_comment}&rdquo;</span> : <span className="text-gray-400">+ 코멘트 추가</span>}
+                      className="mt-1 block w-full text-left text-[10px] italic text-gray-400 hover:text-gray-600 cursor-pointer truncate">
+                      &ldquo;{pick.curation_comment}&rdquo;
                     </button>
-                  )}
-                  <div className="mt-2 flex gap-1.5">
-                    <button onClick={() => onToggleVisible(pick.id)} className={`flex-1 cursor-pointer rounded py-1.5 text-[11px] font-medium ${pick.visible ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-500"}`}>
+                  ) : null}
+                  <div className="mt-1.5 flex gap-1">
+                    <button onClick={() => onToggleVisible(pick.id)} className={`flex-1 cursor-pointer rounded py-1 text-[10px] font-medium ${pick.visible ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400"}`}>
                       {pick.visible ? "노출" : "숨김"}
                     </button>
-                    <button onClick={() => onRemovePick(pick.id)} className="flex-1 cursor-pointer rounded border border-gray-200 py-1.5 text-[11px] font-medium text-gray-400 hover:text-red-500">삭제</button>
+                    <button onClick={() => onRemovePick(pick.id)} className="flex-1 cursor-pointer rounded bg-gray-50 py-1 text-[10px] text-gray-400 hover:text-red-500">삭제</button>
                   </div>
                 </div>
               </div>
@@ -342,28 +343,28 @@ function GongguTab({
         {!loading && !error && products.length > 0 && (
           <div className="mt-4">
             <p className="mb-3 text-sm text-gray-500">{search ? `"${search}" 검색 결과` : "전체 공구 상품"} · {products.length}개</p>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
               {products.map((product) => {
                 const isPicked = pickedProductNos.has(product.product_no);
                 const price = Number(product.price);
                 const isSoldOut = product.sold_out === "T";
                 return (
-                  <div key={product.product_no} className={`overflow-hidden rounded-xl border transition-colors ${isPicked ? "border-[#C41E1E]" : "border-gray-200 hover:border-gray-300"} ${isSoldOut ? "opacity-50" : ""}`}>
-                    <div className="relative aspect-square bg-gray-100">
+                  <div key={product.product_no} className={`overflow-hidden rounded-lg border transition-colors ${isPicked ? "border-[#C41E1E]" : "border-gray-200 hover:border-gray-300"} ${isSoldOut ? "opacity-50" : ""}`}>
+                    <div className="relative aspect-[4/3] bg-gray-100">
                       {product.list_image || product.detail_image ? (
                         <img src={product.list_image || product.detail_image} alt={product.product_name} className="h-full w-full object-cover" />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-gray-300">{IMAGE_PLACEHOLDER}</div>
+                        <div className="flex h-full items-center justify-center text-gray-300"><svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div>
                       )}
-                      {isSoldOut && <span className="absolute left-2 top-2 rounded bg-gray-700 px-2 py-0.5 text-xs font-medium text-white">품절</span>}
-                      {isPicked && <span className="absolute right-2 top-2 rounded bg-[#C41E1E] px-2 py-0.5 text-xs font-medium text-white">PICK</span>}
+                      {isSoldOut && <span className="absolute left-1.5 top-1.5 rounded bg-gray-700 px-1.5 py-0.5 text-[10px] font-medium text-white">품절</span>}
+                      {isPicked && <span className="absolute right-1.5 top-1.5 rounded bg-[#C41E1E] px-1.5 py-0.5 text-[10px] font-medium text-white">PICK</span>}
                     </div>
-                    <div className="p-3">
-                      <p className="line-clamp-2 text-sm font-medium text-gray-900 leading-snug min-h-[2.5rem]">{product.product_name}</p>
-                      <p className="mt-1.5 text-base font-bold text-[#C41E1E]">{formatPrice(price)}</p>
-                      <p className="mt-0.5 text-xs text-gray-400">공급가 {formatPrice(Number(product.supply_price))}</p>
+                    <div className="p-2">
+                      <p className="line-clamp-1 text-xs font-medium text-gray-900">{product.product_name}</p>
+                      <p className="mt-0.5 text-sm font-bold text-[#C41E1E]">{formatPrice(price)}</p>
+                      <p className="text-[10px] text-gray-400">공급가 {formatPrice(Number(product.supply_price))}</p>
                       <button onClick={() => !isSoldOut && !isPicked && handleAddToPick(product)} disabled={isSoldOut || isPicked}
-                        className={`mt-3 w-full cursor-pointer rounded-lg py-2 text-sm font-medium transition-colors ${isSoldOut ? "bg-gray-100 text-gray-400 cursor-default" : isPicked ? "bg-gray-100 text-gray-500 cursor-default" : "bg-[#C41E1E] text-white hover:bg-[#A01818]"}`}>
+                        className={`mt-1.5 w-full cursor-pointer rounded py-1.5 text-xs font-medium transition-colors ${isSoldOut ? "bg-gray-100 text-gray-400 cursor-default" : isPicked ? "bg-gray-100 text-gray-500 cursor-default" : "bg-[#C41E1E] text-white hover:bg-[#A01818]"}`}>
                         {isSoldOut ? "품절" : isPicked ? "PICK 완료" : "PICK 추가"}
                       </button>
                     </div>
