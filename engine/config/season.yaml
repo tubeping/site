@@ -1,0 +1,80 @@
+seasons:
+  spring:
+    months: [3, 4, 5]
+    label: "봄"
+    boost_keywords:
+      - {keyword: "봄나들이", boost: 1.5}
+      - {keyword: "꽃무늬", boost: 1.3}
+      - {keyword: "미세먼지", boost: 1.6}
+      - {keyword: "봄청소", boost: 1.4}
+      - {keyword: "새학기", boost: 1.8}
+      - {keyword: "벚꽃", boost: 1.3}
+      - {keyword: "황사", boost: 1.5}
+    penalty_keywords:
+      - {keyword: "방한", penalty: 0.5}
+      - {keyword: "핫팩", penalty: 0.4}
+      - {keyword: "두꺼운", penalty: 0.6}
+
+  summer:
+    months: [6, 7, 8]
+    label: "여름"
+    boost_keywords:
+      - {keyword: "여름", boost: 1.5}
+      - {keyword: "선풍기", boost: 1.8}
+      - {keyword: "에어컨", boost: 1.7}
+      - {keyword: "수영복", boost: 1.6}
+      - {keyword: "자외선차단", boost: 1.5}
+      - {keyword: "모기", boost: 1.6}
+      - {keyword: "캠핑", boost: 1.4}
+      - {keyword: "냉감", boost: 1.7}
+      - {keyword: "아이스", boost: 1.4}
+    penalty_keywords:
+      - {keyword: "방한", penalty: 0.3}
+      - {keyword: "겨울", penalty: 0.4}
+
+  autumn:
+    months: [9, 10, 11]
+    label: "가을"
+    boost_keywords:
+      - {keyword: "가을", boost: 1.4}
+      - {keyword: "단풍", boost: 1.2}
+      - {keyword: "추석", boost: 1.7}
+      - {keyword: "독서", boost: 1.3}
+      - {keyword: "등산", boost: 1.5}
+      - {keyword: "환절기", boost: 1.4}
+      - {keyword: "면역", boost: 1.3}
+    penalty_keywords:
+      - {keyword: "수영", penalty: 0.5}
+      - {keyword: "선크림", penalty: 0.6}
+
+  winter:
+    months: [12, 1, 2]
+    label: "겨울"
+    boost_keywords:
+      - {keyword: "방한", boost: 1.7}
+      - {keyword: "핫팩", boost: 1.8}
+      - {keyword: "크리스마스", boost: 1.9}
+      - {keyword: "설날", boost: 1.6}
+      - {keyword: "보온", boost: 1.5}
+      - {keyword: "전기장판", boost: 1.6}
+      - {keyword: "두꺼운", boost: 1.4}
+      - {keyword: "겨울", boost: 1.5}
+    penalty_keywords:
+      - {keyword: "여름", penalty: 0.4}
+      - {keyword: "냉감", penalty: 0.3}
+      - {keyword: "수영", penalty: 0.3}
+
+# 상시 이슈 키워드 (시즌 무관하게 트렌드 반영)
+evergreen_keywords:
+  - {keyword: "친환경", boost: 1.2}
+  - {keyword: "가성비", boost: 1.3}
+  - {keyword: "다이어트", boost: 1.2}
+  - {keyword: "홈트", boost: 1.2}
+  - {keyword: "무선", boost: 1.1}
+
+# 점수 가중치 설정
+scoring_weights:
+  trend_score: 0.35      # 검색 트렌드 점수
+  season_score: 0.20     # 시즌 적합성 점수
+  margin_score: 0.25     # 마진 점수
+  channel_fit: 0.20      # 채널 적합성 점수
