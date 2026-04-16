@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
 
 // 커스텀 도메인 → slug 매핑 캐시 (5분 TTL)
 const domainCache = new Map<string, { slug: string; ts: number }>();
@@ -40,11 +39,9 @@ export async function middleware(request: NextRequest) {
   if (!isDefaultDomain && !pathname.startsWith("/api") && !pathname.startsWith("/_next")) {
     const slug = await getSlugByDomain(hostname);
     if (slug) {
-      // 커스텀 도메인 루트 → /shop/[slug] 로 rewrite
       if (pathname === "/" || pathname === "") {
         return NextResponse.rewrite(new URL(`/shop/${slug}`, request.url));
       }
-      // 커스텀 도메인 하위 경로도 shop 컨텍스트로
       return NextResponse.rewrite(new URL(`/shop/${slug}${pathname}`, request.url));
     }
   }
@@ -57,53 +54,40 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Supabase 세션 확인
-  let response = NextResponse.next({
-    request: { headers: request.headers },
-  });
+  // Supabase 세션 확인 — Edge 호환 (REST API 직접 호출, @supabase/ssr 제거)
+  const accessToken = request.cookies.getAll()
+    .find(c => c.name.includes("auth-token") || c.name === "sb-access-token")?.value;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value);
-          });
-          response = NextResponse.next({
-            request: { headers: request.headers },
-          });
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
-        },
-      },
-    }
-  );
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // 비로그인 → 온보딩으로 리다이렉트
-  if (!user) {
+  if (!accessToken) {
     const url = request.nextUrl.clone();
     url.pathname = "/onboarding";
     return NextResponse.redirect(url);
   }
 
-  return response;
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) return NextResponse.next();
+
+    const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!res.ok) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding";
+      return NextResponse.redirect(url);
+    }
+  } catch {
+    return NextResponse.next();
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    // 대시보드 인증 체크
     "/dashboard/:path*",
-    // 커스텀 도메인 루트 (정적 파일 제외)
     "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
   ],
 };
