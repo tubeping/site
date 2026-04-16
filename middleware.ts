@@ -47,7 +47,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── 인증 체크 (기본 도메인) ──
-  const protectedPaths = ["/dashboard"];
+  // TODO: Supabase Auth 연동 완료 후 인증 체크 복원
+  const protectedPaths: string[] = []; // 임시: 인증 없이 대시보드 접근 허용
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
 
   if (!isProtected) {
