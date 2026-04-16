@@ -20,7 +20,7 @@ const MENU_ITEMS: { key: MenuKey; label: string; icon: string }[] = [
   { key: "picks", label: "내 PICK", icon: "📦" },
   { key: "partners", label: "파트너스", icon: "🔗" },
   { key: "shop", label: "몰 꾸미기", icon: "🎨" },
-  { key: "analytics", label: "콘텐츠 분석", icon: "📊" },
+  { key: "analytics", label: "공구 스크립트", icon: "📝" },
   { key: "autodm", label: "자동응답", icon: "💬" },
   { key: "earnings", label: "수익", icon: "💰" },
   { key: "fans", label: "팬 인사이트", icon: "👥" },
