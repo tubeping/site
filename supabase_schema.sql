@@ -83,7 +83,23 @@ CREATE TABLE IF NOT EXISTS settlements (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 6. reviews (큐레이션 리뷰)
+-- 6-1. campaign_notifications (공구 오픈 알림 신청)
+CREATE TABLE IF NOT EXISTS campaign_notifications (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  campaign_id UUID REFERENCES campaigns(id) ON DELETE CASCADE,
+  creator_id UUID REFERENCES creators(id) ON DELETE CASCADE,
+  contact_email TEXT,
+  contact_phone TEXT,
+  notify_channel TEXT DEFAULT 'email', -- email | sms | kakao
+  notify_at_open BOOLEAN DEFAULT true,
+  notify_before_close BOOLEAN DEFAULT true,
+  notified_at TIMESTAMPTZ, -- 발송 완료 시각
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(campaign_id, contact_email)
+);
+
+-- 7. reviews (큐레이션 리뷰)
 CREATE TABLE IF NOT EXISTS reviews (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   order_id UUID,
@@ -108,6 +124,8 @@ CREATE INDEX IF NOT EXISTS idx_creator_picks_creator ON creator_picks(creator_id
 CREATE INDEX IF NOT EXISTS idx_campaigns_creator ON campaigns(creator_id);
 CREATE INDEX IF NOT EXISTS idx_campaigns_status ON campaigns(status);
 CREATE INDEX IF NOT EXISTS idx_reviews_creator ON reviews(creator_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_notif_campaign ON campaign_notifications(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_notif_notified ON campaign_notifications(notified_at) WHERE notified_at IS NULL;
 
 -- ============================================
 -- RLS (Row Level Security) — 기본 설정
@@ -118,12 +136,15 @@ ALTER TABLE creator_picks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settlements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE campaign_notifications ENABLE ROW LEVEL SECURITY;
 
 -- 공개 읽기 (공개몰용)
 CREATE POLICY "Public read creators" ON creators FOR SELECT USING (true);
 CREATE POLICY "Public read creator_shops" ON creator_shops FOR SELECT USING (true);
 CREATE POLICY "Public read creator_picks" ON creator_picks FOR SELECT USING (visible = true);
 CREATE POLICY "Public read reviews" ON reviews FOR SELECT USING (true);
+-- 알림 신청은 삽입만 허용 (개인정보 노출 방지)
+CREATE POLICY "Public insert campaign_notifications" ON campaign_notifications FOR INSERT WITH CHECK (true);
 
 -- Service role은 전체 접근 (서버 사이드)
 -- anon key는 위 정책으로만 접근

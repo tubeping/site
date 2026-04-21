@@ -38,7 +38,7 @@ interface LinkBlock {
 }
 
 interface ShopBlock {
-  type: "hero" | "text" | "image" | "gallery" | "banner" | "links" | "picks" | "video" | "divider" | "reviews" | "newsletter" | "html" | "calendar" | "campaign_live";
+  type: "hero" | "text" | "image" | "gallery" | "banner" | "links" | "picks" | "video" | "divider" | "reviews" | "newsletter" | "html" | "calendar" | "campaign_live" | "campaign_teaser";
   data: Record<string, unknown>;
 }
 
@@ -901,6 +901,158 @@ function CampaignLiveBlock({ data, campaigns, slug }: { data: Record<string, unk
   );
 }
 
+// ─── 공구 티저 블록 (D-N 알림 신청) ───
+function CampaignTeaserBlock({ data, campaigns, creatorId }: {
+  data: Record<string, unknown>;
+  campaigns: ShopCampaign[];
+  creatorId: string;
+}) {
+  const now = Date.now();
+  // 아직 시작하지 않은 예정 캠페인 (started_at > now 또는 approved 상태)
+  const upcoming = campaigns
+    .filter((c) => {
+      if (c.status === "completed") return false;
+      if (!c.started_at) return c.status === "proposed" || c.status === "approved";
+      return new Date(c.started_at).getTime() > now;
+    })
+    .sort((a, b) => {
+      const as = a.started_at ? new Date(a.started_at).getTime() : Infinity;
+      const bs = b.started_at ? new Date(b.started_at).getTime() : Infinity;
+      return as - bs;
+    });
+
+  const specificId = data.campaign_id as string | undefined;
+  const campaign = specificId ? upcoming.find((c) => c.id === specificId) : upcoming[0];
+
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const [notifyCount, setNotifyCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!campaign) return;
+    fetch(`/api/campaign-notify?campaign_id=${campaign.id}`)
+      .then((r) => r.json())
+      .then((d) => setNotifyCount(d.count ?? null))
+      .catch(() => { /* ignore */ });
+  }, [campaign]);
+
+  if (!campaign || !campaign.products) return null;
+
+  const product = campaign.products;
+  const startDate = campaign.started_at ? new Date(campaign.started_at) : null;
+  const diffMs = startDate ? startDate.getTime() - now : 0;
+  const dday = startDate ? Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24))) : null;
+
+  const handleSubmit = async () => {
+    setError("");
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("이메일 주소를 확인해주세요");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/campaign-notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          campaign_id: campaign.id,
+          creator_id: creatorId,
+          email: email.trim(),
+          channel: "email",
+        }),
+      });
+      if (!res.ok) throw new Error("실패");
+      setSubmitted(true);
+      setNotifyCount((c) => (c ?? 0) + 1);
+    } catch {
+      setError("신청에 실패했습니다. 다시 시도해주세요");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <section className="mx-auto max-w-2xl px-3 sm:px-4 py-3">
+      <div className="overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white">
+        <div className="flex items-center gap-2 bg-blue-600 px-4 py-2 text-xs font-bold text-white">
+          🔔 곧 오픈!
+          {dday !== null && dday > 0 && (
+            <span className="ml-auto rounded-full bg-white/20 px-2 py-0.5">D-{dday}</span>
+          )}
+        </div>
+
+        <div className="p-4">
+          <div className="flex gap-3">
+            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white shadow-sm">
+              {product.image_url ? (
+                <img src={product.image_url} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-300">
+                  <svg className="h-7 w-7" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-2 text-sm font-bold text-gray-900 leading-snug">{product.product_name}</p>
+              {product.price > 0 && (
+                <p className="mt-1 text-lg font-extrabold text-blue-600">{formatPrice(product.price)}</p>
+              )}
+              {startDate && (
+                <p className="mt-0.5 text-[11px] text-gray-500">
+                  📅 {startDate.getMonth() + 1}월 {startDate.getDate()}일 오픈 예정
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* 참여자 수 */}
+          {notifyCount !== null && notifyCount > 0 && (
+            <p className="mt-3 text-xs text-gray-600">
+              👥 이미 <b className="text-blue-600">{notifyCount}명</b>이 알림을 신청했어요
+            </p>
+          )}
+
+          {/* 알림 신청 폼 */}
+          {submitted ? (
+            <div className="mt-4 rounded-xl bg-green-50 p-3 text-center">
+              <p className="text-sm font-bold text-green-700">✅ 알림 신청 완료!</p>
+              <p className="mt-0.5 text-xs text-green-600">오픈 시 가장 먼저 알려드릴게요</p>
+            </div>
+          ) : (
+            <div className="mt-4">
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                  placeholder="이메일 주소"
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
+                />
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="cursor-pointer rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {submitting ? "처리 중" : "알림 신청"}
+                </button>
+              </div>
+              {error && <p className="mt-1.5 text-[11px] text-red-500">{error}</p>}
+              <p className="mt-1.5 text-[10px] text-gray-400">
+                오픈 시 이메일로 알려드려요. 언제든 구독 해제 가능
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── 블록 디스패처 ───
 function BlockRenderer({ block, creator, shop, picks, reviews, campaigns, slug }: {
   block: ShopBlock;
@@ -926,18 +1078,26 @@ function BlockRenderer({ block, creator, shop, picks, reviews, campaigns, slug }
     case "html": return <HtmlBlock data={block.data} />;
     case "calendar": return <CalendarBlock data={block.data} campaigns={campaigns} slug={slug} />;
     case "campaign_live": return <CampaignLiveBlock data={block.data} campaigns={campaigns} slug={slug} />;
+    case "campaign_teaser": return <CampaignTeaserBlock data={block.data} campaigns={campaigns} creatorId={creator.id} />;
     default: return null;
   }
 }
 
 // ─── 기본 블록 레이아웃 (blocks 미설정 시 폴백) ───
-function defaultBlocks(shop: ShopApiResponse["shop"], hasCampaigns: boolean, hasActiveCampaign: boolean): ShopBlock[] {
+function defaultBlocks(
+  shop: ShopApiResponse["shop"],
+  hasCampaigns: boolean,
+  hasActiveCampaign: boolean,
+  hasUpcomingCampaign: boolean
+): ShopBlock[] {
   const blocks: ShopBlock[] = [
     { type: "hero", data: {} },
   ];
-  // 진행중인 공구 있으면 최상단에 라이브 블록
+  // 진행중 공구가 최우선, 없으면 예정 공구 티저
   if (hasActiveCampaign) {
     blocks.push({ type: "campaign_live", data: {} });
+  } else if (hasUpcomingCampaign) {
+    blocks.push({ type: "campaign_teaser", data: {} });
   }
   if (shop?.link_blocks && shop.link_blocks.length > 0) {
     blocks.push({ type: "links", data: { items: shop.link_blocks } });
@@ -1004,21 +1164,26 @@ export default function ShopPage({ params }: { params: Promise<{ slug: string }>
       }))
     : FALLBACK_PICKS;
 
-  // 진행중 캠페인 여부
+  // 진행중 / 예정 캠페인 여부
+  const nowTs = Date.now();
   const hasActiveCampaign = safeCampaigns.some((c) => {
     if (!c.started_at) return false;
     const start = new Date(c.started_at).getTime();
     const end = c.settled_at
       ? new Date(c.settled_at).getTime()
       : start + 7 * 24 * 60 * 60 * 1000;
-    const now = Date.now();
-    return (c.status === "running" || c.status === "approved") && now >= start && now <= end;
+    return (c.status === "running" || c.status === "approved") && nowTs >= start && nowTs <= end;
+  });
+  const hasUpcomingCampaign = safeCampaigns.some((c) => {
+    if (c.status === "completed") return false;
+    if (!c.started_at) return c.status === "proposed" || c.status === "approved";
+    return new Date(c.started_at).getTime() > nowTs;
   });
 
   // 블록 결정: DB에 blocks가 있으면 사용, 없으면 기본 레이아웃
   const blocks: ShopBlock[] = (shop?.blocks && Array.isArray(shop.blocks) && shop.blocks.length > 0)
     ? shop.blocks
-    : defaultBlocks(shop, safeCampaigns.length > 0, hasActiveCampaign);
+    : defaultBlocks(shop, safeCampaigns.length > 0, hasActiveCampaign, hasUpcomingCampaign);
 
   return (
     <div className="min-h-screen bg-gray-50">
