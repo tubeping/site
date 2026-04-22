@@ -89,35 +89,56 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "Organization",
-              name: "TubePing",
-              alternateName: "튜핑",
-              url: "https://tubeping.site",
-              description:
-                "유튜브 쇼핑 채널을 위한 올인원 커머스 플랫폼. 상품 소싱부터 배송·CS까지 인플루언서 커머스에 필요한 모든 것을 제공합니다.",
-              foundingDate: "2025",
-              founder: {
-                "@type": "Person",
-                name: "최준",
-              },
-              parentOrganization: {
-                "@type": "Organization",
-                name: "신산애널리틱스",
-                alternateName: "㈜신산애널리틱스",
-              },
-              sameAs: [],
-              contactPoint: {
-                "@type": "ContactPoint",
-                telephone: "+82-10-8550-4919",
-                contactType: "sales",
-                availableLanguage: "Korean",
-              },
-              offers: {
-                "@type": "Offer",
-                description: "SNS 커머스 풀필먼트 서비스",
-                price: "0",
-                priceCurrency: "KRW",
-              },
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://tubeping.site/#organization",
+                  name: "TubePing",
+                  alternateName: "튜핑",
+                  url: "https://tubeping.site",
+                  logo: {
+                    "@type": "ImageObject",
+                    url: "https://tubeping.site/favicon.png",
+                    width: 256,
+                    height: 256,
+                  },
+                  description:
+                    "유튜브 쇼핑 채널을 위한 올인원 커머스 플랫폼. 상품 소싱부터 배송·CS까지 인플루언서 커머스에 필요한 모든 것을 제공합니다.",
+                  foundingDate: "2025",
+                  founder: {
+                    "@type": "Person",
+                    name: "최준",
+                  },
+                  parentOrganization: {
+                    "@type": "Organization",
+                    name: "신산애널리틱스",
+                    alternateName: "㈜신산애널리틱스",
+                  },
+                  sameAs: [],
+                  contactPoint: {
+                    "@type": "ContactPoint",
+                    telephone: "+82-10-8550-4919",
+                    contactType: "sales",
+                    availableLanguage: "Korean",
+                  },
+                  offers: {
+                    "@type": "Offer",
+                    description: "SNS 커머스 풀필먼트 서비스",
+                    price: "0",
+                    priceCurrency: "KRW",
+                  },
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://tubeping.site/#website",
+                  url: "https://tubeping.site",
+                  name: "TubePing",
+                  description:
+                    "유튜브 쇼핑 채널을 위한 올인원 커머스 플랫폼",
+                  publisher: { "@id": "https://tubeping.site/#organization" },
+                  inLanguage: "ko-KR",
+                },
+              ],
             }),
           }}
         />

@@ -170,6 +170,7 @@ export default async function BlogPostPage({ params }: Props) {
   const faqItems: { question: string; answer: string }[] = [];
 
   function cleanAnswer(raw: string): string {
+    // AI 추출 최적: 25~75 단어 ≒ 150~300자. 500자 초과 시 AI가 잘라냄
     return raw
       .replace(/^#{1,6}\s+.*$/gm, "") // 서브헤딩 제거
       .replace(/\*\*/g, "")
@@ -178,7 +179,7 @@ export default async function BlogPostPage({ params }: Props) {
       .replace(/\n+/g, " ")
       .replace(/\s+/g, " ")
       .trim()
-      .slice(0, 500);
+      .slice(0, 300);
   }
 
   // "### Q1. 질문" 또는 "## Q1. 질문" 블록을 찾아 분할
@@ -219,6 +220,11 @@ export default async function BlogPostPage({ params }: Props) {
     foundingDate: "2025",
   };
 
+  // AEO: 단어수·독서시간 계산 (AI가 독해 시간 판단 시 활용)
+  const wordCount = post.content ? post.content.replace(/\s+/g, " ").trim().split(" ").length : 0;
+  const readingMinutes = Math.max(1, Math.round(wordCount / 400)); // 한국어 분당 약 400자 기준
+  const timeRequiredIso = `PT${readingMinutes}M`;
+
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -243,6 +249,13 @@ export default async function BlogPostPage({ params }: Props) {
     articleSection: post.category,
     inLanguage: "ko-KR",
     isAccessibleForFree: true,
+    wordCount,
+    timeRequired: timeRequiredIso,
+    // AEO: Speakable — 음성·AI 어시스턴트 우선 추출 섹션
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: [".tldr-box", ".prose-custom h2", ".prose-custom p.border-l-4"],
+    },
   };
 
   // AEO: FAQPage structured data (질문 2개 이상 있을 때만)
@@ -351,8 +364,8 @@ export default async function BlogPostPage({ params }: Props) {
             </span>
           </div>
 
-          {/* AEO: TL;DR — featured snippet 후보 */}
-          <div className="mb-8 p-5 sm:p-6 bg-[#FFF8F8] border-l-4 border-[#C41E1E] rounded-r-xl">
+          {/* AEO: TL;DR — featured snippet 후보 + Speakable schema 매칭 */}
+          <div className="tldr-box mb-8 p-5 sm:p-6 bg-[#FFF8F8] border-l-4 border-[#C41E1E] rounded-r-xl">
             <div className="text-xs font-bold text-[#C41E1E] mb-2 tracking-wide">📌 핵심 요약</div>
             <p className="text-base sm:text-lg text-[#333333] leading-relaxed m-0">
               {post.excerpt}
