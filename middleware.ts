@@ -36,7 +36,7 @@ const DEFAULT_DOMAINS = ["localhost", "tubeping.com", "tubeping.shop", "tubeping
 const HOMEPAGE_ONLY_HOSTS = ["tubeping.site", "www.tubeping.site"];
 const HOMEPAGE_ALLOWED_PATHS = new Set([
   "/", "/blog", "/privacy", "/terms", "/ads-disclosure",
-  "/sitemap.xml", "/robots.txt", "/feed.xml",
+  "/sitemap.xml", "/robots.txt", "/feed.xml", "/llms.txt",
   "/favicon.ico", "/favicon.png", "/og-image.png",
 ]);
 const HOMEPAGE_ALLOWED_PREFIXES = ["/blog/", "/api/blog", "/api/apply", "/_next/", "/api/cron/"];
