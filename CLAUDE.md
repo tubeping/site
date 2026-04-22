@@ -1,111 +1,112 @@
-# TubePing Builder — Claude 작업 지침
+# tubeping.site (회사 홈페이지) — Claude 작업 지침
+
+이 디렉토리는 **tubeping.site 홈페이지 전용**입니다.
+TubePing 크리에이터 커머스 풀필먼트 서비스의 **공개 마케팅 사이트**.
 
 ## 작업 실행 규칙
 - 모든 파일 생성/수정 작업은 승인 없이 자동으로 진행
 - 중간에 yes/no 확인 요청 금지
 - 판단이 필요한 경우 최선의 선택을 하고 실행 후 결과 보고
 
-## 프로젝트 개요
-크리에이터(유튜버·인플루언서)용 쇼핑몰 빌더.
-온보딩 5단계를 거치면 `shop/[slug]` 형태의 개인 공구 쇼핑몰이 자동 생성됨.
-운영사: ㈜신산애널리틱스 / 서비스명: 튜핑(TubePing)
+## ⚠️ 이 디렉토리 범위 (절대 규칙)
 
-## admin과의 관계 ⚠️ 중요
-- **현재는 admin(tubeping_admin/)과 완전히 별도로 운영**
-- **공구 상품은 공유 예정** — Supabase의 `products`, `orders`, `suppliers` 테이블을 admin과 같이 사용
-  (supabase_schema.sql 주석: "기존 테이블 유지")
-- 상품 데이터는 admin에서 관리되고, 빌더는 그것을 읽어 크리에이터가 큐레이션/판매
-- 향후 **네이버 DataLab + 셀러라이프 기반 상품 추천**(현재 루트 `main.py`, `fetchers/`)을 빌더 안으로 통합 예정
+### 허용 경로
+- `c:/tubeping-site/` 내 모든 파일
+- `git push origin main` (`tubeping/site` repo)
+- Vercel `tubeping.site` 프로젝트 배포
 
-## ⚠️ 다음주(2026-04-21 주간) Vultr 서버 이전 예정
-- 현재 **Supabase + Vercel** 구성은 임시. 다음주 **Vultr VPS**로 전체 이전.
-- 이전 전까지는 아래 기술 스택·배포 방식이 유효. 이전 후 재작성 필요.
+### 절대 금지
+- ❌ `c:/tubeping-sourcing/` 디렉토리 참조/수정 (builder/admin 영역)
+- ❌ `tubeping/builder`, `tubeping/admin` repo를 원격 추가
+- ❌ `app/page.tsx`를 `redirect("/dashboard")` 등으로 변경
+- ❌ `app/dashboard`, `app/admin`, `app/onboarding`, `app/shop`, `app/auth` 추가
+- ❌ builder용 API 추가 (`app/api/cafe24`, `coupang`, `me`, `picks`, `shop`, `youtube`, `parse-insight` 등)
 
-## 기술 스택
-- Next.js 16.2.1 App Router + TypeScript + React 19
-- Tailwind CSS
-- **Supabase** (`@supabase/ssr`, `@supabase/supabase-js`) — DB·인증 공용
-- 로컬 실행: `npm run dev` → localhost:3000
-- 배포: Vercel (프로젝트 `tubeping_builder` — 현재 `tubeping/admin` main 브랜치 참조, 곧 자체 repo로 분리 예정)
+### 과거 사고 이력 (3회 반복)
+이 코드는 과거 `tubeping/admin` repo와 코드를 공유했음. 빌더 에이전트 작업이
+tubeping.site를 3회 오염시켰음. **2026-04-22에 완전 분리 완료.**
 
-## 외부 연동 (lib/ · api/)
-- **Supabase** (`lib/supabase.ts`, `supabase-browser.ts`, `supabase-server.ts`) — SSR/클라이언트 분리
-- **카페24** (`app/api/cafe24/`) — 상품·카테고리·콜백
-- **쿠팡파트너스** (`app/api/coupang/`, `lib/coupang-sign.ts`) — 딥링크·검색 API
-- **YouTube Data API** (`app/api/youtube/`) — 크리에이터 채널 분석
-- **Insight 파싱** (`app/api/parse-insight/`) — 인사이트 자동 추출
+## 레포지토리 및 배포
 
-## 핵심 기능·라우트
+| 항목 | 값 |
+|------|-----|
+| GitHub | `tubeping/site` |
+| Vercel | `tubeping.site` (prj_cnOMLvvk1SNaQwG5tIm67cwURgvY) |
+| 도메인 | tubeping.site |
+| 자동배포 | `git push origin main` → Vercel 자동 빌드 |
+
+## 페이지 구성 (전체)
+
 ```
 app/
-├── page.tsx                ← 랜딩
-├── onboarding/             ← 5단계 온보딩 (채널 분석 → 상품 → 스토어 → 로그인 → 완료)
-├── dashboard/              ← 크리에이터 전용 대시보드 (상품 관리, 수익)
-├── shop/[slug]/            ← 크리에이터별 공개 공구 쇼핑몰 (최종 산출물)
-├── blog/                   ← 빌더 자체 블로그
-│   └── [slug]/
-├── privacy/, terms/        ← 법적 고지
-│
+├── page.tsx              ← 랜딩페이지 (절대 redirect로 변경 금지)
+├── layout.tsx            ← 공통 레이아웃 + SEO 메타
+├── blog/
+│   ├── page.tsx          ← 블로그 목록 (검색·카테고리 필터)
+│   ├── [slug]/page.tsx   ← 블로그 상세 (Article JSON-LD)
+│   └── _components/      ← BlogListClient 등
+├── terms/page.tsx        ← 이용약관
+├── privacy/page.tsx      ← 개인정보처리방침
+├── sitemap.ts            ← 동적 sitemap
+├── robots.ts             ← robots.txt
+├── feed.xml/route.ts     ← RSS 피드
 └── api/
-    ├── apply/              ← 가입 신청
-    ├── me/                 ← 현재 크리에이터 정보
-    ├── picks/              ← 크리에이터가 고른 상품
-    ├── campaigns/          ← 캠페인(공구) 관리
-    ├── campaign-notify/    ← 캠페인 알림
-    ├── earnings/           ← 수익 정산
-    ├── shop/               ← 공개 숍 데이터
-    ├── blog/, blog/[slug]/ ← 블로그 CRUD
-    ├── cafe24/             ← 카페24 상품 동기화
-    ├── coupang/            ← 쿠팡 딥링크·검색
-    ├── youtube/            ← 채널 분석
-    └── parse-insight/      ← 인사이트 파싱
+    ├── apply/            ← 입점신청 (Gmail SMTP로 master@shinsananalytics.com에 알림)
+    ├── blog/             ← 블로그 CRUD
+    └── cron/gsc-report/  ← 주간 SEO 자동 리포트 (Vercel Cron, 매주 월요일)
 ```
 
-## DB 주요 테이블 (supabase_schema.sql 참고)
-- **creators** — 크리에이터 계정 (shop_slug, portal_token, platform)
-- **products, orders, suppliers** — admin과 **공유** 테이블
-- (빌더 전용 테이블은 schema 파일 확인)
+## middleware.ts 방어 코드
 
-## ⚠️ 과도기 주의사항 (2026-04-14 기준)
+`tubeping.site` 호스트로 들어오는 요청 중 허용된 경로 외
+(예: `/dashboard`, `/admin`, `/onboarding` 등)는 자동으로 `/`로 302 리다이렉트.
+**빌더 코드가 실수로 유입되더라도 사용자에게 노출되지 않도록 하는 방어 장치.**
+절대 제거하지 말 것.
 
-### 이 폴더 안의 `app/admin/` 디렉토리는 옛날 잔재
-- `app/admin/mall/`, `app/admin/marketing/`, `app/admin/system/` 등은 과거 admin+builder 통합 시절의 코드
-- 실제 admin은 별도 폴더 `tubeping_admin/`에 있음
-- **신규 개발 금지**. 곧 정리(삭제) 예정.
+## 환경변수 (Vercel Production)
 
-### 이 폴더에서 `git push` 금지 🚫
-- 이 폴더의 git 원격이 `tubeping/admin` repo로 **잘못 연결**되어 있음
-- push하면 admin repo에 빌더 코드가 섞여 들어감 (오염)
-- 자체 repo `tubeping/builder` 생성 및 재연결 대기 중
+| 키 | 용도 |
+|----|------|
+| `NEXT_PUBLIC_SUPABASE_URL` | 블로그 글 조회 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 블로그 글 조회 |
+| `SUPABASE_SERVICE_ROLE_KEY` | 블로그 글 서버사이드 조회 |
+| `SMTP_USER` / `SMTP_PASS` | 입점신청·SEO 리포트 Gmail 발송 |
+| `CRON_SECRET` | Vercel Cron 엔드포인트 보호 |
+| `REPORT_EMAIL` | SEO 리포트 수신자 |
+| `GSC_CLIENT_EMAIL`, `GSC_PRIVATE_KEY` | Google Search Console API (설정 필요) |
+| `ANTHROPIC_API_KEY` | AI 분석 (선택) |
 
-### 루트 `C:/tubeping-sourcing/app/`도 잔재
-- 루트의 `app/`과 `package.json`(name: `tubeping_builder`)도 구버전 코드
-- 현재 살아있는 빌더는 이 폴더(`tubeping_builder/`)가 유일
-- 혼동 시 **package.json의 name**이 아니라 **폴더 위치**와 **최근 수정일** 기준으로 판단
+## 기술 스택
 
-## 코딩 컨벤션
-- TypeScript (`.tsx`, `.ts`)
-- 클라이언트 컴포넌트는 `"use client"` 명시
-- Supabase 클라이언트: 서버 컴포넌트에서는 `supabase-server.ts`, 클라이언트에서는 `supabase-browser.ts` 사용
-- 공용 컴포넌트 `components/`, 페이지별 컴포넌트 `_components/`
-- 하드코딩 금지 — 설정값은 `.env`, 더미데이터는 파일 상단 상수
+- Next.js 16.x App Router + TypeScript
+- Tailwind CSS
+- Supabase (블로그 `blog_posts` 테이블만 사용)
+- Vercel 배포
 
-## 브랜드 규칙 (admin과 공통)
-- 빨간색: `#C41E1E` (Tube)
-- 검정: `#111111` (Ping)
-- 로고: **Tube**Ping (Tube=빨간색, Ping=검정)
+## 브랜드
 
-## 반응형 규칙 (모바일 필수)
-- 크리에이터 대시보드·공개 숍 모두 **모바일이 메인 사용처**
-- 그리드: 모바일 1열 → 태블릿 2열 → 데스크톱 3~4열
-- Tailwind breakpoint (sm/md/lg/xl) 활용
+- **Tube**: `#C41E1E` (빨강)
+- **Ping**: `#111111` (검정)
+- Primary 버튼: bg `#C41E1E`, hover `#A01818`
 
-## 보안 규칙
-- `.env` 인증 정보 하드코딩 금지
-- Supabase RLS(Row Level Security) 적용 필수 (크리에이터 A가 크리에이터 B 데이터 접근 불가)
-- `portal_token` 등 민감값 클라이언트 노출 금지
+## SEO 체크리스트
 
-## 금지 사항
-- 기존 작동하는 Supabase/카페24/쿠팡 연동 코드 임의 변경 금지
-- `tubeping.site`(홈페이지) 관련 코드 건드리지 말 것
-- Write(전체 덮어쓰기) 대신 Edit(부분 수정) 사용
+모든 페이지 반드시 갖출 것:
+- `generateMetadata()` 또는 정적 `metadata` export
+- `alternates.canonical` 설정
+- OG 태그 (title, description, image, type, url)
+- Twitter Card 메타
+- 블로그 글은 Article JSON-LD 포함
+
+현재 SEO 상태 (2026-04-22):
+- ✅ robots.txt: admin/api/dashboard 차단
+- ✅ sitemap.xml: 모든 블로그 글 자동 포함
+- ✅ Google Search Console 인증
+- ✅ Naver 웹마스터 인증
+- ✅ 주간 자동 리포트 (GSC API → Claude 분석 → Gmail)
+
+## 보안
+
+- `.env.local`은 git 커밋 금지 (.gitignore 확인)
+- Supabase RLS 필수
+- API 라우트는 API 키 검증 필수

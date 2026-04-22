@@ -165,33 +165,91 @@ export default async function BlogPostPage({ params }: Props) {
 
   const html = markdownToHtml(post.content);
 
+  // AEO: 본문에서 Q&A 자동 추출 → FAQPage structured data
+  // 마크다운 원문에서 "Q. 질문" + 다음 문단을 FAQ 항목으로 변환
+  const faqItems: { question: string; answer: string }[] = [];
+  const faqRegex = /^Q\d*\.\s*(.+?)\n+([^#\nQ][^\n]*(?:\n(?!Q\d*\.|##)[^\n]*)*)/gm;
+  let faqMatch;
+  while ((faqMatch = faqRegex.exec(post.content)) !== null) {
+    const question = faqMatch[1].trim().replace(/\*\*/g, "");
+    const answer = faqMatch[2].trim().replace(/\*\*/g, "").replace(/[-*]\s/g, "").slice(0, 300);
+    if (question && answer) faqItems.push({ question, answer });
+  }
+
+  const publisherOrg = {
+    "@type": "Organization",
+    "@id": "https://tubeping.site/#organization",
+    name: "TubePing",
+    alternateName: "튜핑",
+    url: "https://tubeping.site",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://tubeping.site/favicon.png",
+      width: 256,
+      height: 256,
+    },
+    sameAs: [],
+    parentOrganization: {
+      "@type": "Organization",
+      name: "㈜신산애널리틱스",
+    },
+    founder: { "@type": "Person", name: "최준" },
+    foundingDate: "2025",
+  };
+
   const articleJsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
+    "@id": `https://tubeping.site/blog/${slug}#article`,
     headline: post.title,
     description: post.excerpt,
-    image: "https://tubeping.site/og-image.png",
+    image: {
+      "@type": "ImageObject",
+      url: "https://tubeping.site/og-image.png",
+      width: 1200,
+      height: 630,
+    },
     datePublished: post.published_at,
     dateModified: post.updated_at || post.published_at,
-    author: {
-      "@type": "Organization",
-      name: "TubePing",
-      url: "https://tubeping.site",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "TubePing",
-      logo: {
-        "@type": "ImageObject",
-        url: "https://tubeping.site/favicon.png",
-      },
-    },
+    author: publisherOrg,
+    publisher: publisherOrg,
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": `https://tubeping.site/blog/${slug}`,
     },
     keywords: post.keywords?.join(", "),
     articleSection: post.category,
+    inLanguage: "ko-KR",
+    isAccessibleForFree: true,
+  };
+
+  // AEO: FAQPage structured data (질문 2개 이상 있을 때만)
+  const faqJsonLd =
+    faqItems.length >= 2
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "@id": `https://tubeping.site/blog/${slug}#faq`,
+          mainEntity: faqItems.map((f) => ({
+            "@type": "Question",
+            name: f.question,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: f.answer,
+            },
+          })),
+        }
+      : null;
+
+  // Breadcrumb structured data (검색결과 네비게이션)
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: "https://tubeping.site" },
+      { "@type": "ListItem", position: 2, name: "블로그", item: "https://tubeping.site/blog" },
+      { "@type": "ListItem", position: 3, name: post.title, item: `https://tubeping.site/blog/${slug}` },
+    ],
   };
 
   // 관련 글
@@ -209,6 +267,16 @@ export default async function BlogPostPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#F0F0F0]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -259,6 +327,14 @@ export default async function BlogPostPage({ params }: Props) {
             <span className="text-sm bg-[#FFF0F3] text-[#C41E1E] px-3 py-1 rounded-full font-medium">
               {post.category}
             </span>
+          </div>
+
+          {/* AEO: TL;DR — featured snippet 후보 */}
+          <div className="mb-8 p-5 sm:p-6 bg-[#FFF8F8] border-l-4 border-[#C41E1E] rounded-r-xl">
+            <div className="text-xs font-bold text-[#C41E1E] mb-2 tracking-wide">📌 핵심 요약</div>
+            <p className="text-base sm:text-lg text-[#333333] leading-relaxed m-0">
+              {post.excerpt}
+            </p>
           </div>
 
           {/* Content */}
