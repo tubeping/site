@@ -30,9 +30,36 @@ async function getSlugByDomain(hostname: string): Promise<string | null> {
 // TubePing 기본 도메인 목록
 const DEFAULT_DOMAINS = ["localhost", "tubeping.com", "tubeping.shop", "tubeping.site", "tpng.kr", "vercel.app"];
 
+// ── tubeping.site 홈페이지 전용 도메인 보호 ──
+// 빌더 코드가 같은 repo에 있는 현재 구조에서, tubeping.site 도메인으로 들어온
+// 요청은 홈페이지 관련 경로만 허용하고 나머지는 `/`로 리다이렉트
+const HOMEPAGE_ONLY_HOSTS = ["tubeping.site", "www.tubeping.site"];
+const HOMEPAGE_ALLOWED_PATHS = new Set([
+  "/", "/blog", "/privacy", "/terms", "/ads-disclosure",
+  "/sitemap.xml", "/robots.txt", "/feed.xml",
+  "/favicon.ico", "/favicon.png", "/og-image.png",
+]);
+const HOMEPAGE_ALLOWED_PREFIXES = ["/blog/", "/api/blog", "/api/apply", "/_next/", "/api/cron/"];
+
+function isHomepageOnlyHost(hostname: string) {
+  return HOMEPAGE_ONLY_HOSTS.some((h) => hostname === h);
+}
+function isHomepagePath(pathname: string) {
+  if (HOMEPAGE_ALLOWED_PATHS.has(pathname)) return true;
+  return HOMEPAGE_ALLOWED_PREFIXES.some((p) => pathname.startsWith(p));
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get("host") || "";
+
+  // ── tubeping.site 도메인 방어: 빌더 경로 접근 차단 ──
+  if (isHomepageOnlyHost(hostname) && !isHomepagePath(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.search = "";
+    return NextResponse.redirect(url, 302);
+  }
 
   // ── 커스텀 도메인 감지 ──
   const isDefaultDomain = DEFAULT_DOMAINS.some((d) => hostname.includes(d));
