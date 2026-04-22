@@ -39,7 +39,7 @@ const HOMEPAGE_ALLOWED_PATHS = new Set([
   "/sitemap.xml", "/robots.txt", "/feed.xml", "/llms.txt",
   "/favicon.ico", "/favicon.png", "/og-image.png",
 ]);
-const HOMEPAGE_ALLOWED_PREFIXES = ["/blog/", "/api/blog", "/api/apply", "/_next/", "/api/cron/"];
+const HOMEPAGE_ALLOWED_PREFIXES = ["/blog/", "/api/blog", "/api/apply", "/_next/", "/api/cron/", "/partners/"];
 
 function isHomepageOnlyHost(hostname: string) {
   return HOMEPAGE_ONLY_HOSTS.some((h) => hostname === h);
