@@ -103,7 +103,6 @@ const PARTNERS = [
   { name: "뉴스반장", subs: "51만", img: "/partners/뉴스반장51만.jpg" },
   { name: "뉴스엔진", subs: "35만", img: "/partners/뉴스엔진_34.6만.jpg" },
   { name: "빵시기TV", subs: "35만", img: "/partners/빵시기TV_35만.jpg" },
-  { name: "완선부부", subs: "6.6만", img: "/partners/완선부부_6.6만.jpg" },
   { name: "Artube", subs: "4.6만", img: "/partners/Artube_4.6만.jpg" },
 ];
 
