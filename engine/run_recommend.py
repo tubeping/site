@@ -58,6 +58,122 @@ ALL_CATEGORY_IDS = [
 ]
 
 
+def _estimate_shopping_insights(channel_config: dict, recommendations: dict) -> dict:
+    """쇼핑 관점 추가 분석: 예상 성과, 카테고리 적합도, 페르소나 한 줄 요약"""
+    age = channel_config.get("age", {}) or {}
+    gender = channel_config.get("gender", {}) or {}
+    device = channel_config.get("device", {}) or {}
+    interests = channel_config.get("interests", []) or []
+    subs = channel_config.get("subscriber", 0) or 0
+
+    # ── 연령 세그먼트 비율 ──
+    def _age_bucket_sum(keys):
+        return sum(float(v) for k, v in age.items() if any(kk in str(k) for kk in keys))
+    senior_pct = _age_bucket_sum(["50", "55", "60", "65"])
+    middle_pct = _age_bucket_sum(["30", "40"])
+    young_pct = _age_bucket_sum(["10", "20"])
+    male_pct = float(gender.get("남성", 50))
+    female_pct = float(gender.get("여성", 50))
+    tv_pct = float(device.get("TV", 0))
+    mobile_pct = float(device.get("모바일", 0))
+
+    # ── 1. 영상당 예상 공구 성과 ──
+    avg_views_est = channel_config.get("avg_views") or int(subs * 0.05)  # 기본 구독자의 5%
+
+    # 전환율 대역 (연령·기기 기반 0.4~2.0%)
+    conv_low = 0.005
+    conv_high = 0.015
+    if senior_pct >= 50:
+        conv_high = 0.018  # 시니어는 구매결정 확실
+    if tv_pct >= 10:
+        conv_low += 0.001  # TV 시청자는 신뢰도 높음
+
+    # 객단가 대역 (연령·성별)
+    if senior_pct >= 50:
+        aov_low, aov_high = 30000, 80000
+    elif middle_pct >= 50:
+        aov_low, aov_high = 25000, 60000
+    else:
+        aov_low, aov_high = 15000, 40000
+    # 남성 우세 채널은 고단가 상품 수용도 ↑ (자산·기기·프리미엄)
+    if male_pct >= 70:
+        aov_high = int(aov_high * 1.3)
+
+    rev_low = int(avg_views_est * conv_low * aov_low)
+    rev_high = int(avg_views_est * conv_high * aov_high)
+
+    expected_performance = {
+        "avgViewsEst": avg_views_est,
+        "avgViewsSource": "실측" if channel_config.get("avg_views") else "구독자 기반 추정(5%)",
+        "conversionLow": conv_low,
+        "conversionHigh": conv_high,
+        "aovLow": aov_low,
+        "aovHigh": aov_high,
+        "revenueLow": rev_low,
+        "revenueHigh": rev_high,
+    }
+
+    # ── 2. 카테고리 적합도 점수 (recommend_score 평균 → 0~100 정규화) ──
+    category_fit = {}
+    for cat_name, block in recommendations.items():
+        items = block.get("items", [])
+        if not items:
+            category_fit[cat_name] = 0
+            continue
+        avg_score = sum(it.get("score", 0) for it in items) / len(items)
+        # recommend_score는 보통 25-55 범위 → 약 ×1.8 스케일로 100점 환산 (cap)
+        fit = min(100, max(0, round(avg_score * 1.8, 1)))
+        category_fit[cat_name] = fit
+
+    # ── 3. 쇼핑 페르소나 한 줄 요약 (룰베이스) ──
+    # 연령
+    if senior_pct >= 60:
+        age_desc = "45-65세+"
+    elif senior_pct >= 40:
+        age_desc = "40-60대"
+    elif middle_pct >= 50:
+        age_desc = "30-50대"
+    elif young_pct >= 50:
+        age_desc = "20-30대"
+    else:
+        age_desc = "다연령"
+    # 성별
+    if male_pct >= 65:
+        gender_desc = "남성"
+    elif female_pct >= 65:
+        gender_desc = "여성"
+    else:
+        gender_desc = "남녀 고루"
+    # 기기
+    if tv_pct >= 10:
+        device_desc = "TV 병행 시청"
+    elif mobile_pct >= 80:
+        device_desc = "모바일 중심"
+    else:
+        device_desc = ""
+    # 객단가 레이블
+    aov_desc = f"객단가 {aov_low//10000}-{aov_high//10000}만원대"
+    # 관심사
+    interest_desc = "·".join(interests[:3]) + " 관심" if interests else ""
+
+    parts = [f"{age_desc} {gender_desc}"]
+    if interest_desc:
+        parts.append(interest_desc)
+    if device_desc:
+        parts.append(device_desc)
+    parts.append(aov_desc)
+    # 프리미엄 수용도 태그
+    if male_pct >= 70 and senior_pct >= 40:
+        parts.append("검증된 프리미엄 선호")
+    persona_summary = ", ".join(parts)
+
+    return {
+        "expectedPerformance": expected_performance,
+        "categoryFitScores": category_fit,
+        "personaSummary": persona_summary,
+    }
+
+
 def build_recommendations(channel_config: dict) -> dict:
     """채널 config 받아서 추천 결과 JSON 구조 생성"""
     recommender = RecommendScorer()
@@ -122,6 +238,8 @@ def build_recommendations(channel_config: dict) -> dict:
     else:
         tier = "나노"
 
+    shopping_insights = _estimate_shopping_insights(channel_config, recommendations)
+
     return {
         "channel": channel_config.get("name", ""),
         "generatedAt": datetime.now().isoformat(timespec="seconds"),
@@ -138,6 +256,7 @@ def build_recommendations(channel_config: dict) -> dict:
             "interests": channel_config.get("interests", []),
             "categories": channel_config.get("categories", []),
         },
+        "shoppingInsights": shopping_insights,
         "recommendations": recommendations,
         "weights": RecommendScorer.WEIGHTS,
     }

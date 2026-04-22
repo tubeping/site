@@ -1,6 +1,6 @@
 {
   "channel": "신사임당",
-  "generatedAt": "2026-04-22T09:51:40",
+  "generatedAt": "2026-04-22T10:09:00",
   "persona": {
     "subscribers": 2710000,
     "tier": "메가",
@@ -57,6 +57,30 @@
       "식품",
       "생활건강"
     ]
+  },
+  "shoppingInsights": {
+    "expectedPerformance": {
+      "avgViewsEst": 135500,
+      "avgViewsSource": "구독자 기반 추정(5%)",
+      "conversionLow": 0.006,
+      "conversionHigh": 0.018,
+      "aovLow": 30000,
+      "aovHigh": 104000,
+      "revenueLow": 24390000,
+      "revenueHigh": 253656000
+    },
+    "categoryFitScores": {
+      "패션의류": 62.0,
+      "패션잡화": 59.3,
+      "화장품/미용": 57.0,
+      "디지털/가전": 59.1,
+      "가구/인테리어": 59.1,
+      "출산/육아": 56.1,
+      "식품": 59.3,
+      "스포츠/레저": 58.7,
+      "생활/건강": 58.8
+    },
+    "personaSummary": "45-65세+ 남성, 시사·경제·국방 관심, TV 병행 시청, 객단가 3-10만원대, 검증된 프리미엄 선호"
   },
   "recommendations": {
     "패션의류": {
@@ -256,22 +280,6 @@
         },
         {
           "rank": 13,
-          "keyword": "결혼식하객룩",
-          "stars": 2.5,
-          "starsDisplay": "★★☆",
-          "score": 29.1,
-          "searchVolume": 62970,
-          "clicks": 1744,
-          "ctr": 2.77,
-          "isShopping": true,
-          "contentScore": 0.0,
-          "purchaseScore": 20.0,
-          "demandScore": 92.98267386604127,
-          "trendScore": 30.0,
-          "audienceScore": 10.0
-        },
-        {
-          "rank": 14,
           "keyword": "원피스",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -283,6 +291,22 @@
           "contentScore": 0.0,
           "purchaseScore": 20.0,
           "demandScore": 93.0,
+          "trendScore": 30.0,
+          "audienceScore": 10.0
+        },
+        {
+          "rank": 14,
+          "keyword": "결혼식하객룩",
+          "stars": 2.5,
+          "starsDisplay": "★★☆",
+          "score": 29.1,
+          "searchVolume": 62970,
+          "clicks": 1744,
+          "ctr": 2.77,
+          "isShopping": true,
+          "contentScore": 0.0,
+          "purchaseScore": 20.0,
+          "demandScore": 92.98267386604127,
           "trendScore": 30.0,
           "audienceScore": 10.0
         },
@@ -357,13 +381,13 @@
         },
         {
           "rank": 4,
-          "keyword": "슬리퍼",
+          "keyword": "운동화",
           "stars": 2.5,
           "starsDisplay": "★★☆",
           "score": 33.1,
-          "searchVolume": 102600,
-          "clicks": 1101,
-          "ctr": 1.07,
+          "searchVolume": 107900,
+          "clicks": 1207,
+          "ctr": 1.12,
           "isShopping": true,
           "contentScore": 0.0,
           "purchaseScore": 20.0,
@@ -373,13 +397,13 @@
         },
         {
           "rank": 5,
-          "keyword": "운동화",
+          "keyword": "슬리퍼",
           "stars": 2.5,
           "starsDisplay": "★★☆",
           "score": 33.1,
-          "searchVolume": 107900,
-          "clicks": 1207,
-          "ctr": 1.12,
+          "searchVolume": 102600,
+          "clicks": 1101,
+          "ctr": 1.07,
           "isShopping": true,
           "contentScore": 0.0,
           "purchaseScore": 20.0,
@@ -554,22 +578,6 @@
       "items": [
         {
           "rank": 1,
-          "keyword": "건강기능식품",
-          "stars": 3.5,
-          "starsDisplay": "★★★☆",
-          "score": 45.74,
-          "searchVolume": 10600,
-          "clicks": 60,
-          "ctr": 0.57,
-          "isShopping": true,
-          "contentScore": 60.0,
-          "purchaseScore": 20.0,
-          "demandScore": 51.17838606105006,
-          "trendScore": 70.0,
-          "audienceScore": 30.0
-        },
-        {
-          "rank": 2,
           "keyword": "집들이선물",
           "stars": 3.0,
           "starsDisplay": "★★★",
@@ -585,7 +593,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 3,
+          "rank": 2,
           "keyword": "썬크림추천",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -601,7 +609,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 4,
+          "rank": 3,
           "keyword": "스승의날선물",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -617,7 +625,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 5,
+          "rank": 4,
           "keyword": "KODEX200",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -633,7 +641,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 6,
+          "rank": 5,
           "keyword": "치아씨드",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -649,7 +657,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 7,
+          "rank": 6,
           "keyword": "달바톤업선크림",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -665,7 +673,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 8,
+          "rank": 7,
           "keyword": "선크림추천",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -681,7 +689,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 9,
+          "rank": 8,
           "keyword": "소상공인지원금",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -697,7 +705,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 10,
+          "rank": 9,
           "keyword": "김치",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -713,7 +721,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 11,
+          "rank": 10,
           "keyword": "PPT무료템플릿",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -729,7 +737,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 12,
+          "rank": 11,
           "keyword": "밀키트",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -745,23 +753,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 13,
-          "keyword": "초석잠",
-          "stars": 2.5,
-          "starsDisplay": "★★☆",
-          "score": 30.54,
-          "searchVolume": 16440,
-          "clicks": 533,
-          "ctr": 3.24,
-          "isShopping": true,
-          "contentScore": 0.0,
-          "purchaseScore": 20.0,
-          "demandScore": 80.21894439947923,
-          "trendScore": 30.0,
-          "audienceScore": 30.0
-        },
-        {
-          "rank": 14,
+          "rank": 12,
           "keyword": "향수",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -777,7 +769,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 15,
+          "rank": 13,
           "keyword": "CMA통장",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -789,6 +781,38 @@
           "contentScore": 0.0,
           "purchaseScore": 20.0,
           "demandScore": 78.87765328186451,
+          "trendScore": 30.0,
+          "audienceScore": 30.0
+        },
+        {
+          "rank": 14,
+          "keyword": "구인구직사이트",
+          "stars": 2.5,
+          "starsDisplay": "★★☆",
+          "score": 30.17,
+          "searchVolume": 28410,
+          "clicks": 565,
+          "ctr": 1.99,
+          "isShopping": true,
+          "contentScore": 0.0,
+          "purchaseScore": 20.0,
+          "demandScore": 78.35015139175029,
+          "trendScore": 30.0,
+          "audienceScore": 30.0
+        },
+        {
+          "rank": 15,
+          "keyword": "캠핑음식",
+          "stars": 2.5,
+          "starsDisplay": "★★☆",
+          "score": 29.99,
+          "searchVolume": 31390,
+          "clicks": 432,
+          "ctr": 1.38,
+          "isShopping": true,
+          "contentScore": 0.0,
+          "purchaseScore": 20.0,
+          "demandScore": 77.46808251622451,
           "trendScore": 30.0,
           "audienceScore": 30.0
         }
@@ -847,13 +871,13 @@
         },
         {
           "rank": 4,
-          "keyword": "로봇청소기",
+          "keyword": "노트북",
           "stars": 2.5,
           "starsDisplay": "★★☆",
           "score": 33.1,
-          "searchVolume": 126200,
-          "clicks": 1858,
-          "ctr": 1.47,
+          "searchVolume": 207300,
+          "clicks": 2212,
+          "ctr": 1.07,
           "isShopping": true,
           "contentScore": 0.0,
           "purchaseScore": 20.0,
@@ -863,13 +887,13 @@
         },
         {
           "rank": 5,
-          "keyword": "노트북",
+          "keyword": "로봇청소기",
           "stars": 2.5,
           "starsDisplay": "★★☆",
           "score": 33.1,
-          "searchVolume": 207300,
-          "clicks": 2212,
-          "ctr": 1.07,
+          "searchVolume": 126200,
+          "clicks": 1858,
+          "ctr": 1.47,
           "isShopping": true,
           "contentScore": 0.0,
           "purchaseScore": 20.0,
@@ -927,13 +951,13 @@
         },
         {
           "rank": 9,
-          "keyword": "공기청정기",
+          "keyword": "선풍기",
           "stars": 2.5,
           "starsDisplay": "★★☆",
           "score": 32.3,
-          "searchVolume": 150600,
-          "clicks": 1238,
-          "ctr": 0.82,
+          "searchVolume": 129900,
+          "clicks": 1282,
+          "ctr": 0.99,
           "isShopping": true,
           "contentScore": 0.0,
           "purchaseScore": 20.0,
@@ -943,13 +967,13 @@
         },
         {
           "rank": 10,
-          "keyword": "선풍기",
+          "keyword": "공기청정기",
           "stars": 2.5,
           "starsDisplay": "★★☆",
           "score": 32.3,
-          "searchVolume": 129900,
-          "clicks": 1282,
-          "ctr": 0.99,
+          "searchVolume": 150600,
+          "clicks": 1238,
+          "ctr": 0.82,
           "isShopping": true,
           "contentScore": 0.0,
           "purchaseScore": 20.0,
@@ -1289,22 +1313,6 @@
       "items": [
         {
           "rank": 1,
-          "keyword": "건강기능식품",
-          "stars": 3.5,
-          "starsDisplay": "★★★☆",
-          "score": 45.74,
-          "searchVolume": 10600,
-          "clicks": 60,
-          "ctr": 0.57,
-          "isShopping": true,
-          "contentScore": 60.0,
-          "purchaseScore": 20.0,
-          "demandScore": 51.17838606105006,
-          "trendScore": 70.0,
-          "audienceScore": 30.0
-        },
-        {
-          "rank": 2,
           "keyword": "아기옷",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1320,7 +1328,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 3,
+          "rank": 2,
           "keyword": "KODEX200",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1336,7 +1344,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 4,
+          "rank": 3,
           "keyword": "소상공인지원금",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1352,7 +1360,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 5,
+          "rank": 4,
           "keyword": "김치",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1368,7 +1376,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 6,
+          "rank": 5,
           "keyword": "베이비페어",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1384,7 +1392,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 7,
+          "rank": 6,
           "keyword": "강아지유모차",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1400,7 +1408,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 8,
+          "rank": 7,
           "keyword": "보드게임",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1416,7 +1424,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 9,
+          "rank": 8,
           "keyword": "트라이크",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1432,7 +1440,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 10,
+          "rank": 9,
           "keyword": "PPT무료템플릿",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1448,7 +1456,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 11,
+          "rank": 10,
           "keyword": "밀키트",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1464,7 +1472,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 12,
+          "rank": 11,
           "keyword": "리안드림콧",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1480,7 +1488,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 13,
+          "rank": 12,
           "keyword": "슬라임",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1496,23 +1504,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 14,
-          "keyword": "초석잠",
-          "stars": 2.5,
-          "starsDisplay": "★★☆",
-          "score": 30.54,
-          "searchVolume": 16440,
-          "clicks": 533,
-          "ctr": 3.24,
-          "isShopping": true,
-          "contentScore": 0.0,
-          "purchaseScore": 20.0,
-          "demandScore": 80.21894439947923,
-          "trendScore": 30.0,
-          "audienceScore": 30.0
-        },
-        {
-          "rank": 15,
+          "rank": 13,
           "keyword": "CMA통장",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1524,6 +1516,38 @@
           "contentScore": 0.0,
           "purchaseScore": 20.0,
           "demandScore": 78.87765328186451,
+          "trendScore": 30.0,
+          "audienceScore": 30.0
+        },
+        {
+          "rank": 14,
+          "keyword": "구인구직사이트",
+          "stars": 2.5,
+          "starsDisplay": "★★☆",
+          "score": 30.17,
+          "searchVolume": 28410,
+          "clicks": 565,
+          "ctr": 1.99,
+          "isShopping": true,
+          "contentScore": 0.0,
+          "purchaseScore": 20.0,
+          "demandScore": 78.35015139175029,
+          "trendScore": 30.0,
+          "audienceScore": 30.0
+        },
+        {
+          "rank": 15,
+          "keyword": "웨건",
+          "stars": 2.5,
+          "starsDisplay": "★★☆",
+          "score": 30.03,
+          "searchVolume": 33720,
+          "clicks": 404,
+          "ctr": 1.2,
+          "isShopping": true,
+          "contentScore": 0.0,
+          "purchaseScore": 20.0,
+          "demandScore": 77.65347179571317,
           "trendScore": 30.0,
           "audienceScore": 30.0
         }
@@ -1598,6 +1622,22 @@
         },
         {
           "rank": 5,
+          "keyword": "오메가3",
+          "stars": 2.5,
+          "starsDisplay": "★★☆",
+          "score": 33.1,
+          "searchVolume": 234100,
+          "clicks": 2435,
+          "ctr": 1.04,
+          "isShopping": true,
+          "contentScore": 0.0,
+          "purchaseScore": 20.0,
+          "demandScore": 93.0,
+          "trendScore": 30.0,
+          "audienceScore": 30.0
+        },
+        {
+          "rank": 6,
           "keyword": "유산균",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1613,7 +1653,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 6,
+          "rank": 7,
           "keyword": "올리브오일",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1621,22 +1661,6 @@
           "searchVolume": 131100,
           "clicks": 2186,
           "ctr": 1.67,
-          "isShopping": true,
-          "contentScore": 0.0,
-          "purchaseScore": 20.0,
-          "demandScore": 93.0,
-          "trendScore": 30.0,
-          "audienceScore": 30.0
-        },
-        {
-          "rank": 7,
-          "keyword": "오메가3",
-          "stars": 2.5,
-          "starsDisplay": "★★☆",
-          "score": 33.1,
-          "searchVolume": 234100,
-          "clicks": 2435,
-          "ctr": 1.04,
           "isShopping": true,
           "contentScore": 0.0,
           "purchaseScore": 20.0,
@@ -1694,6 +1718,22 @@
         },
         {
           "rank": 11,
+          "keyword": "KODEX200",
+          "stars": 2.5,
+          "starsDisplay": "★★☆",
+          "score": 32.2,
+          "searchVolume": 257600,
+          "clicks": 926,
+          "ctr": 0.36,
+          "isShopping": true,
+          "contentScore": 0.0,
+          "purchaseScore": 20.0,
+          "demandScore": 88.49916480022901,
+          "trendScore": 30.0,
+          "audienceScore": 30.0
+        },
+        {
+          "rank": 12,
           "keyword": "비타민B",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1709,7 +1749,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 12,
+          "rank": 13,
           "keyword": "올리브오일캡슐",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1725,7 +1765,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 13,
+          "rank": 14,
           "keyword": "아보카도오일",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1741,7 +1781,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 14,
+          "rank": 15,
           "keyword": "계란",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -1753,22 +1793,6 @@
           "contentScore": 0.0,
           "purchaseScore": 20.0,
           "demandScore": 86.0708519749202,
-          "trendScore": 30.0,
-          "audienceScore": 30.0
-        },
-        {
-          "rank": 15,
-          "keyword": "김치",
-          "stars": 2.5,
-          "starsDisplay": "★★☆",
-          "score": 31.65,
-          "searchVolume": 54800,
-          "clicks": 735,
-          "ctr": 1.34,
-          "isShopping": true,
-          "contentScore": 0.0,
-          "purchaseScore": 20.0,
-          "demandScore": 85.7699212559503,
           "trendScore": 30.0,
           "audienceScore": 30.0
         }
@@ -1795,13 +1819,13 @@
         },
         {
           "rank": 2,
-          "keyword": "슬리퍼",
+          "keyword": "운동화",
           "stars": 2.5,
           "starsDisplay": "★★☆",
           "score": 33.1,
-          "searchVolume": 102600,
-          "clicks": 1101,
-          "ctr": 1.07,
+          "searchVolume": 107900,
+          "clicks": 1207,
+          "ctr": 1.12,
           "isShopping": true,
           "contentScore": 0.0,
           "purchaseScore": 20.0,
@@ -1811,13 +1835,13 @@
         },
         {
           "rank": 3,
-          "keyword": "운동화",
+          "keyword": "슬리퍼",
           "stars": 2.5,
           "starsDisplay": "★★☆",
           "score": 33.1,
-          "searchVolume": 107900,
-          "clicks": 1207,
-          "ctr": 1.12,
+          "searchVolume": 102600,
+          "clicks": 1101,
+          "ctr": 1.07,
           "isShopping": true,
           "contentScore": 0.0,
           "purchaseScore": 20.0,
@@ -2024,22 +2048,6 @@
       "items": [
         {
           "rank": 1,
-          "keyword": "건강기능식품",
-          "stars": 3.5,
-          "starsDisplay": "★★★☆",
-          "score": 45.74,
-          "searchVolume": 10600,
-          "clicks": 60,
-          "ctr": 0.57,
-          "isShopping": true,
-          "contentScore": 60.0,
-          "purchaseScore": 20.0,
-          "demandScore": 51.17838606105006,
-          "trendScore": 70.0,
-          "audienceScore": 30.0
-        },
-        {
-          "rank": 2,
           "keyword": "오메가3추천",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -2051,6 +2059,22 @@
           "contentScore": 0.0,
           "purchaseScore": 40.0,
           "demandScore": 80.37944606688305,
+          "trendScore": 30.0,
+          "audienceScore": 30.0
+        },
+        {
+          "rank": 2,
+          "keyword": "정수기",
+          "stars": 2.5,
+          "starsDisplay": "★★☆",
+          "score": 33.9,
+          "searchVolume": 105400,
+          "clicks": 2992,
+          "ctr": 2.84,
+          "isShopping": true,
+          "contentScore": 0.0,
+          "purchaseScore": 20.0,
+          "demandScore": 97.0,
           "trendScore": 30.0,
           "audienceScore": 30.0
         },
@@ -2072,22 +2096,6 @@
         },
         {
           "rank": 4,
-          "keyword": "정수기",
-          "stars": 2.5,
-          "starsDisplay": "★★☆",
-          "score": 33.9,
-          "searchVolume": 105400,
-          "clicks": 2992,
-          "ctr": 2.84,
-          "isShopping": true,
-          "contentScore": 0.0,
-          "purchaseScore": 20.0,
-          "demandScore": 97.0,
-          "trendScore": 30.0,
-          "audienceScore": 30.0
-        },
-        {
-          "rank": 5,
           "keyword": "침대프레임",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -2103,7 +2111,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 6,
+          "rank": 5,
           "keyword": "안마의자",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -2119,7 +2127,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 7,
+          "rank": 6,
           "keyword": "얼음정수기",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -2135,7 +2143,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 8,
+          "rank": 7,
           "keyword": "매트리스",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -2151,7 +2159,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 9,
+          "rank": 8,
           "keyword": "정수기렌탈가격비교",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -2167,7 +2175,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 10,
+          "rank": 9,
           "keyword": "KODEX200",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -2183,7 +2191,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 11,
+          "rank": 10,
           "keyword": "비타민B",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -2199,7 +2207,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 12,
+          "rank": 11,
           "keyword": "소상공인지원금",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -2215,7 +2223,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 13,
+          "rank": 12,
           "keyword": "김치",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -2231,7 +2239,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 14,
+          "rank": 13,
           "keyword": "여자친구생일선물",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -2247,7 +2255,7 @@
           "audienceScore": 30.0
         },
         {
-          "rank": 15,
+          "rank": 14,
           "keyword": "구강세정기",
           "stars": 2.5,
           "starsDisplay": "★★☆",
@@ -2259,6 +2267,22 @@
           "contentScore": 0.0,
           "purchaseScore": 20.0,
           "demandScore": 85.17826625635735,
+          "trendScore": 30.0,
+          "audienceScore": 30.0
+        },
+        {
+          "rank": 15,
+          "keyword": "종합비타민",
+          "stars": 2.5,
+          "starsDisplay": "★★☆",
+          "score": 31.52,
+          "searchVolume": 49090,
+          "clicks": 769,
+          "ctr": 1.57,
+          "isShopping": true,
+          "contentScore": 0.0,
+          "purchaseScore": 20.0,
+          "demandScore": 85.10875573901885,
           "trendScore": 30.0,
           "audienceScore": 30.0
         }

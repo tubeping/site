@@ -37,10 +37,28 @@ interface Persona {
   categories: string[];
 }
 
+interface ExpectedPerformance {
+  avgViewsEst: number;
+  avgViewsSource: string;
+  conversionLow: number;
+  conversionHigh: number;
+  aovLow: number;
+  aovHigh: number;
+  revenueLow: number;
+  revenueHigh: number;
+}
+
+interface ShoppingInsights {
+  expectedPerformance: ExpectedPerformance;
+  categoryFitScores: Record<string, number>;
+  personaSummary: string;
+}
+
 interface RecData {
   channel: string;
   generatedAt: string;
   persona: Persona;
+  shoppingInsights?: ShoppingInsights;
   recommendations: Record<string, CategoryBlock>;
   weights: Record<string, number>;
 }
@@ -257,6 +275,95 @@ export default function ProductRecommend() {
               </div>
             )}
           </div>
+
+          {/* ── 🛒 쇼핑 인사이트 3개 ── */}
+          {data.shoppingInsights && (
+            <div className="mb-5 grid grid-cols-1 lg:grid-cols-3 gap-3">
+              {/* 쇼핑 페르소나 한 줄 */}
+              <div className="rounded-xl border border-purple-100 bg-gradient-to-br from-purple-50 to-white p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">🧑‍🤝‍🧑</span>
+                  <h4 className="text-xs font-bold text-gray-900">쇼핑 페르소나</h4>
+                </div>
+                <p className="text-[13px] leading-relaxed text-gray-700">
+                  {data.shoppingInsights.personaSummary}
+                </p>
+              </div>
+
+              {/* 영상당 예상 공구 성과 */}
+              <div className="rounded-xl border border-[#C41E1E]/20 bg-gradient-to-br from-red-50 to-white p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">💰</span>
+                  <h4 className="text-xs font-bold text-gray-900">영상당 예상 공구 매출</h4>
+                </div>
+                <p className="text-lg font-bold text-[#C41E1E]">
+                  {(data.shoppingInsights.expectedPerformance.revenueLow / 10000).toFixed(0)}만
+                  ~
+                  {(data.shoppingInsights.expectedPerformance.revenueHigh / 10000).toFixed(0)}만원
+                </p>
+                <div className="mt-2 space-y-0.5 text-[10px] text-gray-500">
+                  <p>평균 조회 {data.shoppingInsights.expectedPerformance.avgViewsEst.toLocaleString("ko-KR")} <span className="text-gray-400">({data.shoppingInsights.expectedPerformance.avgViewsSource})</span></p>
+                  <p>전환율 {(data.shoppingInsights.expectedPerformance.conversionLow * 100).toFixed(1)}~{(data.shoppingInsights.expectedPerformance.conversionHigh * 100).toFixed(1)}%</p>
+                  <p>객단가 {(data.shoppingInsights.expectedPerformance.aovLow / 10000).toFixed(0)}~{(data.shoppingInsights.expectedPerformance.aovHigh / 10000).toFixed(0)}만원</p>
+                </div>
+              </div>
+
+              {/* 카테고리 적합도 Top 3 */}
+              <div className="rounded-xl border border-green-100 bg-gradient-to-br from-green-50 to-white p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">🎯</span>
+                  <h4 className="text-xs font-bold text-gray-900">카테고리 적합도 TOP 3</h4>
+                </div>
+                <div className="space-y-1.5">
+                  {Object.entries(data.shoppingInsights.categoryFitScores)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 3)
+                    .map(([cat, score]) => (
+                      <div key={cat} className="flex items-center gap-2">
+                        <span className="text-[11px] text-gray-700 w-20 truncate">
+                          {data.recommendations[cat]?.emoji} {cat}
+                        </span>
+                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+                          <div className="h-full bg-green-500 rounded-full" style={{ width: `${score}%` }} />
+                        </div>
+                        <span className="text-[11px] font-bold text-green-700 w-8 text-right">
+                          {score.toFixed(0)}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── 전체 카테고리 적합도 (상세) ── */}
+          {data.shoppingInsights && (
+            <details className="mb-5 rounded-xl border border-gray-100 bg-white">
+              <summary className="cursor-pointer px-4 py-3 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                📊 전체 카테고리 적합도 점수 펼치기
+              </summary>
+              <div className="px-4 pb-4 space-y-1.5">
+                {Object.entries(data.shoppingInsights.categoryFitScores)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([cat, score]) => {
+                    const tier = score >= 70 ? "bg-green-500" : score >= 55 ? "bg-amber-400" : "bg-gray-300";
+                    return (
+                      <div key={cat} className="flex items-center gap-2">
+                        <span className="text-xs text-gray-700 w-28 truncate">
+                          {data.recommendations[cat]?.emoji} {cat}
+                        </span>
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
+                          <div className={`h-full rounded-full ${tier}`} style={{ width: `${score}%` }} />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-800 w-10 text-right">
+                          {score.toFixed(0)}점
+                        </span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </details>
+          )}
 
           {/* ── 스코어링 로직 안내 ── */}
           <div className="mb-5 rounded-xl border border-blue-100 bg-blue-50/40 p-3">
