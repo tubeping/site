@@ -166,38 +166,35 @@ export default async function BlogPostPage({ params }: Props) {
   const html = markdownToHtml(post.content);
 
   // AEO: 본문에서 Q&A 자동 추출 → FAQPage structured data
-  // 패턴 1: "### Q1. 질문" / "### Q. 질문" 헤딩 + 다음 문단(다음 헤딩 전까지)
-  // 패턴 2: "Q1. 질문" / "Q. 질문" 단독 줄 + 다음 문단
+  // 블록 단위(\n##, \n###)로 나눠서 Q로 시작하는 블록만 추출
   const faqItems: { question: string; answer: string }[] = [];
 
-  // 먼저 헤딩 형식(### Q...)을 우선 추출 — 가장 흔한 AEO 구조
-  const headingQaRegex = /^#{2,4}\s+Q\d*\.\s+(.+?)$([\s\S]*?)(?=^#{2,4}\s|\n##\s|$)/gm;
-  let m;
-  while ((m = headingQaRegex.exec(post.content)) !== null) {
-    const question = m[1].trim().replace(/\*\*/g, "");
-    // 답변: 다음 헤딩 전까지, 마크다운 정리
-    let answer = m[2]
-      .trim()
+  function cleanAnswer(raw: string): string {
+    return raw
       .replace(/^#{1,6}\s+.*$/gm, "") // 서브헤딩 제거
       .replace(/\*\*/g, "")
-      .replace(/[-*]\s/g, "")
-      .replace(/\|.*\|/g, "") // 테이블 행 제거
+      .replace(/[-*]\s+/g, "")
+      .replace(/^\|.*\|$/gm, "") // 테이블 행 제거
       .replace(/\n+/g, " ")
       .replace(/\s+/g, " ")
       .trim()
       .slice(0, 500);
-    if (question && answer && answer.length > 20) {
-      faqItems.push({ question, answer });
-    }
   }
 
-  // 백업: 단순 "Q1. ..." 패턴 (헤딩 추출이 실패했을 때만)
-  if (faqItems.length === 0) {
-    const plainQaRegex = /^Q\d*\.\s*(.+?)\n+([^#\nQ][\s\S]*?)(?=\nQ\d*\.|\n##|\n###|$)/gm;
-    while ((m = plainQaRegex.exec(post.content)) !== null) {
-      const question = m[1].trim().replace(/\*\*/g, "");
-      const answer = m[2].trim().replace(/\*\*/g, "").replace(/[-*]\s/g, "").replace(/\n+/g, " ").slice(0, 500);
-      if (question && answer) faqItems.push({ question, answer });
+  // "### Q1. 질문" 또는 "## Q1. 질문" 블록을 찾아 분할
+  // lookahead로 split하되, split 후 각 조각에서 질문/답변 분리
+  const sections = post.content.split(/\n(?=#{2,4}\s+Q\d*\.\s)/);
+  for (const section of sections) {
+    const headingMatch = section.match(/^#{2,4}\s+Q\d*\.\s+(.+)$/m);
+    if (!headingMatch) continue;
+    const question = headingMatch[1].trim().replace(/\*\*/g, "");
+    // 헤딩 라인 이후 ~ 다음 헤딩 전까지가 답변
+    const afterHeading = section.slice(section.indexOf("\n", section.indexOf(headingMatch[0])) + 1);
+    // 같은 블록 안에서 다음 ### / ## 나오면 잘라냄
+    const answerRaw = afterHeading.split(/\n#{2,4}\s/)[0];
+    const answer = cleanAnswer(answerRaw);
+    if (question && answer && answer.length > 20) {
+      faqItems.push({ question, answer });
     }
   }
 
