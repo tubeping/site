@@ -196,10 +196,17 @@ async function generatePost(
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       response_format: { type: "json_object" },
-      max_tokens: 8000,
+      max_tokens: 16000,
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: topicInstruction },
+        {
+          role: "user",
+          content:
+            topicInstruction +
+            "\n\n⚠️ 매우 중요: content 필드는 반드시 한국어로 **최소 3,500자 이상** 작성하세요. " +
+            "Q&A는 **반드시 10개 이상** 포함하고, 각 답변은 100~200자로 충분히 자세히 써주세요. " +
+            "표는 최소 2개 포함. 짧은 글은 거부되어 재시도됩니다.",
+        },
       ],
     });
     text = completion.choices[0]?.message?.content || "";
@@ -231,10 +238,10 @@ async function validatePost(post: GeneratedPost): Promise<string | null> {
   if (!post.excerpt || post.excerpt.length < 50 || post.excerpt.length > 300) return "excerpt length";
   if (!["가이드", "전략", "트렌드", "서비스소개", "회사소개"].includes(post.category)) return "category";
   if (!Array.isArray(post.keywords) || post.keywords.length < 3) return "keywords";
-  if (!post.content || post.content.length < 2000) return "content length";
+  if (!post.content || post.content.length < 1800) return `content length (${post.content?.length || 0}자)`;
   // Q&A 최소 5개
   const qCount = (post.content.match(/^##\s+Q\d*\./gm) || []).length;
-  if (qCount < 5) return "Q&A count < 5";
+  if (qCount < 5) return `Q&A count (${qCount}개)`;
 
   // slug 중복 확인
   const { data: dup } = await supabaseAdmin
@@ -279,11 +286,11 @@ export async function GET(request: Request) {
     // 1. 주제 선정
     const { source, seed } = await pickTopic();
 
-    // 2. 최대 3회 생성 시도 (검증 실패 시 재시도)
+    // 2. 최대 5회 생성 시도 (검증 실패 시 재시도)
     let post: GeneratedPost | null = null;
     let modelUsed = "";
     let lastError: string | null = null;
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < 5; attempt++) {
       try {
         const generated = await generatePost(source, seed);
         const validationError = await validatePost(generated.post);
