@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { google } from "googleapis";
 import nodemailer from "nodemailer";
 import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { supabaseAdmin } from "@/lib/supabase-server";
 import { TOPIC_POOL, TopicSeed } from "./topic-pool";
 
@@ -113,11 +114,10 @@ type GeneratedPost = {
 async function generatePost(
   source: "gsc" | "pool",
   seed: TopicSeed | { query: string; impressions: number; position: number }
-): Promise<GeneratedPost> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set");
-
-  const client = new Anthropic({ apiKey });
+): Promise<{ post: GeneratedPost; model: string }> {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  if (!anthropicKey && !openaiKey) throw new Error("Neither ANTHROPIC_API_KEY nor OPENAI_API_KEY set");
 
   let topicInstruction = "";
   if (source === "gsc" && "query" in seed) {
@@ -173,18 +173,38 @@ async function generatePost(
   "content": "# 제목\\n\\n## 핵심 요약\\n...\\n\\n## Q1. 질문\\n답변...\\n\\n(전체 마크다운)"
 }`;
 
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 8000,
-    system: systemPrompt,
-    messages: [{ role: "user", content: topicInstruction }],
-  });
+  let text = "";
+  let modelUsed = "";
 
-  const text = message.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("\n")
-    .trim();
+  // Claude 우선 (있으면), 없으면 OpenAI fallback
+  if (anthropicKey) {
+    const client = new Anthropic({ apiKey: anthropicKey });
+    const message = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 8000,
+      system: systemPrompt,
+      messages: [{ role: "user", content: topicInstruction }],
+    });
+    text = message.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join("\n")
+      .trim();
+    modelUsed = "claude-sonnet-4-6";
+  } else {
+    const openai = new OpenAI({ apiKey: openaiKey });
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      response_format: { type: "json_object" },
+      max_tokens: 8000,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: topicInstruction },
+      ],
+    });
+    text = completion.choices[0]?.message?.content || "";
+    modelUsed = "gpt-4o";
+  }
 
   // JSON 추출
   let jsonStr = text;
@@ -195,14 +215,14 @@ async function generatePost(
   try {
     parsed = JSON.parse(jsonStr);
   } catch {
-    throw new Error("Claude JSON parse failed: " + text.slice(0, 200));
+    throw new Error(`${modelUsed} JSON parse failed: ${text.slice(0, 200)}`);
   }
 
   // slug fallback
   if (!parsed.slug || parsed.slug.length < 3) {
     parsed.slug = slugify(parsed.title) || `auto-${Date.now()}`;
   }
-  return parsed;
+  return { post: parsed, model: modelUsed };
 }
 
 async function validatePost(post: GeneratedPost): Promise<string | null> {
@@ -247,13 +267,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
     await sendEmail(
       "⚠️ TubePing 자동 블로그 발행 — API 키 미설정",
-      `<p>Vercel 환경변수에 <code>ANTHROPIC_API_KEY</code>를 추가하면 매주 자동 블로그 발행이 시작됩니다.</p>
-       <p>Vercel Dashboard → Settings → Environment Variables에서 추가하세요.</p>`
+      `<p>Vercel 환경변수에 <code>ANTHROPIC_API_KEY</code> 또는 <code>OPENAI_API_KEY</code>를 추가하면 자동 블로그 발행이 시작됩니다.</p>`
     );
-    return NextResponse.json({ skipped: "ANTHROPIC_API_KEY not set" }, { status: 200 });
+    return NextResponse.json({ skipped: "No AI API key set" }, { status: 200 });
   }
 
   try {
@@ -262,13 +281,15 @@ export async function GET(request: Request) {
 
     // 2. 최대 3회 생성 시도 (검증 실패 시 재시도)
     let post: GeneratedPost | null = null;
+    let modelUsed = "";
     let lastError: string | null = null;
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const generated = await generatePost(source, seed);
-        const validationError = await validatePost(generated);
+        const validationError = await validatePost(generated.post);
         if (!validationError) {
-          post = generated;
+          post = generated.post;
+          modelUsed = generated.model;
           break;
         }
         lastError = validationError;
@@ -312,7 +333,7 @@ export async function GET(request: Request) {
       `✅ 새 블로그 자동 발행 — ${inserted.title}`,
       `<div style="font-family:-apple-system,sans-serif;max-width:600px;margin:auto;padding:20px">
          <h1 style="color:#C41E1E;margin-bottom:4px">새 블로그 글이 자동 발행되었습니다</h1>
-         <p style="color:#666;margin-top:0">${source === "gsc" ? "GSC 거의 1페이지 키워드 기반" : "주제 풀 기반"}</p>
+         <p style="color:#666;margin-top:0">${source === "gsc" ? "GSC 거의 1페이지 키워드 기반" : "주제 풀 기반"} · 모델 <code>${modelUsed}</code></p>
          <div style="background:#FFF8F8;border-left:4px solid #C41E1E;padding:16px;margin:16px 0;border-radius:4px">
            <h2 style="margin:0 0 8px;color:#111">${post.title}</h2>
            <p style="margin:0;color:#666;font-size:14px">${post.excerpt}</p>
@@ -333,6 +354,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       ok: true,
       source,
+      model: modelUsed,
       post: { id: inserted.id, slug: inserted.slug, title: inserted.title, url: postUrl },
     });
   } catch (error) {
