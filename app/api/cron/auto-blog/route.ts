@@ -3,6 +3,7 @@ import { google } from "googleapis";
 import nodemailer from "nodemailer";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabaseAdmin } from "@/lib/supabase-server";
 import { TOPIC_POOL, TopicSeed } from "./topic-pool";
 
@@ -115,9 +116,12 @@ async function generatePost(
   source: "gsc" | "pool",
   seed: TopicSeed | { query: string; impressions: number; position: number }
 ): Promise<{ post: GeneratedPost; model: string }> {
+  const geminiKey = process.env.GEMINI_API_KEY;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
-  if (!anthropicKey && !openaiKey) throw new Error("Neither ANTHROPIC_API_KEY nor OPENAI_API_KEY set");
+  if (!geminiKey && !anthropicKey && !openaiKey) {
+    throw new Error("No AI API key set (GEMINI_API_KEY / ANTHROPIC_API_KEY / OPENAI_API_KEY)");
+  }
 
   let topicInstruction = "";
   if (source === "gsc" && "query" in seed) {
@@ -176,8 +180,27 @@ async function generatePost(
   let text = "";
   let modelUsed = "";
 
-  // Claude 우선 (있으면), 없으면 OpenAI fallback
-  if (anthropicKey) {
+  // 우선순위: Gemini → Claude → OpenAI
+  if (geminiKey) {
+    const genAI = new GoogleGenerativeAI(geminiKey);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      systemInstruction: systemPrompt,
+      generationConfig: {
+        responseMimeType: "application/json",
+        maxOutputTokens: 16384,
+        temperature: 0.7,
+      },
+    });
+    const result = await model.generateContent(
+      topicInstruction +
+        "\n\n⚠️ 매우 중요: content 필드는 반드시 한국어로 **최소 3,500자 이상** 작성하세요. " +
+        "Q&A는 **반드시 10개 이상** 포함하고, 각 답변은 100~200자로 충분히 자세히 써주세요. " +
+        "표는 최소 2개 포함. 짧은 글은 거부되어 재시도됩니다."
+    );
+    text = result.response.text().trim();
+    modelUsed = "gemini-2.5-flash";
+  } else if (anthropicKey) {
     const client = new Anthropic({ apiKey: anthropicKey });
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
@@ -274,10 +297,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
+  if (!process.env.GEMINI_API_KEY && !process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
     await sendEmail(
       "⚠️ TubePing 자동 블로그 발행 — API 키 미설정",
-      `<p>Vercel 환경변수에 <code>ANTHROPIC_API_KEY</code> 또는 <code>OPENAI_API_KEY</code>를 추가하면 자동 블로그 발행이 시작됩니다.</p>`
+      `<p>Vercel 환경변수에 <code>GEMINI_API_KEY</code> / <code>ANTHROPIC_API_KEY</code> / <code>OPENAI_API_KEY</code> 중 하나를 추가하면 자동 블로그 발행이 시작됩니다.</p>`
     );
     return NextResponse.json({ skipped: "No AI API key set" }, { status: 200 });
   }
