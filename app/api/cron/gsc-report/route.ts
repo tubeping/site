@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const SITE_URL = "https://tubeping.site/";
-const REPORT_EMAIL = process.env.REPORT_EMAIL || "master@shinsananalytics.com";
+const REPORT_EMAIL = process.env.REPORT_EMAIL || "";
 
 type Row = { keys: string[]; clicks: number; impressions: number; ctr: number; position: number };
 
@@ -256,20 +256,23 @@ export async function GET(request: Request) {
       aiAnalysis,
     });
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    // REPORT_EMAIL이 비어있거나 "DISABLED"면 발송 안 함 — admin 대시보드에서 확인
+    if (REPORT_EMAIL && REPORT_EMAIL !== "DISABLED") {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
 
-    await transporter.sendMail({
-      from: `"TubePing SEO 리포트" <${process.env.SMTP_USER}>`,
-      to: REPORT_EMAIL,
-      subject: `📊 tubeping.site 주간 SEO 리포트 (${ymd(start)} ~ ${ymd(end)})`,
-      html,
-    });
+      await transporter.sendMail({
+        from: `"TubePing SEO 리포트" <${process.env.SMTP_USER}>`,
+        to: REPORT_EMAIL,
+        subject: `📊 tubeping.site 주간 SEO 리포트 (${ymd(start)} ~ ${ymd(end)})`,
+        html,
+      });
+    }
 
     return NextResponse.json({
       ok: true,

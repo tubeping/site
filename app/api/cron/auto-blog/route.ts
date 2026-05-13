@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300; // Claude 생성에 시간 걸림
 
 const SITE_URL = "https://tubeping.site/";
-const REPORT_EMAIL = process.env.REPORT_EMAIL || "master@shinsananalytics.com";
+const REPORT_EMAIL = process.env.REPORT_EMAIL || "";
 
 type GscRow = { keys: string[]; clicks: number; impressions: number; ctr: number; position: number };
 
@@ -278,6 +278,8 @@ async function validatePost(post: GeneratedPost): Promise<string | null> {
 }
 
 async function sendEmail(subject: string, html: string): Promise<void> {
+  // REPORT_EMAIL이 비어있거나 "DISABLED"면 발송 안 함 — admin 대시보드에서 확인
+  if (!REPORT_EMAIL || REPORT_EMAIL === "DISABLED") return;
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
