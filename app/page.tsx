@@ -95,7 +95,6 @@ const REVENUE_STEPS = [
 const PARTNERS = [
   { name: "누기", subs: "130만", img: "/partners/누기_39만.jpg" },
   { name: "코믹마트", subs: "101만", img: "/partners/코믹마트.jpg" },
-  { name: "이트랜드", subs: "71.7만", img: "/partners/E트렌드_71.6만.jpg" },
   { name: "떠먹여주는TV", subs: "68만", img: "/partners/떠먹여주는tv_68만.jpg" },
   { name: "편들어주는 파생방송", subs: "65만", img: "/partners/파생방송_65만.jpg" },
   { name: "킬링타임", subs: "54.5만", img: "/partners/킬링타.jpg" },
