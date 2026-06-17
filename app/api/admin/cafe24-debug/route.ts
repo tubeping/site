@@ -15,8 +15,51 @@ export async function GET(request: Request) {
   // 모든 stores row 확인 (어디에 본 토큰이 있는지)
   const { data: allStores } = await supabaseAdmin
     .from("stores")
-    .select("id, mall_id, status, access_token, token_expires_at, updated_at, last_sync_at")
+    .select("id, mall_id, status, access_token, refresh_token, token_expires_at, updated_at, last_sync_at")
     .order("updated_at", { ascending: false });
+
+  // tubeping store의 refresh_token 길이 확인
+  const tubeStore = (allStores || []).find((s) => s.mall_id === "tubeping");
+  const refreshTokenInfo = {
+    has_refresh: !!tubeStore?.refresh_token,
+    refresh_length: tubeStore?.refresh_token?.length || 0,
+    refresh_preview: tubeStore?.refresh_token?.slice(0, 8) || null,
+    access_length: tubeStore?.access_token?.length || 0,
+    access_full: tubeStore?.access_token, // raw 값 전체 — 디버그용 임시
+  };
+
+  // refresh_token으로 새 access_token 발급 시도 (stores.client_id/secret 사용)
+  let refreshAttempt: Record<string, unknown> | null = null;
+  if (tubeStore?.refresh_token) {
+    const { data: cred } = await supabaseAdmin
+      .from("stores")
+      .select("client_id, client_secret")
+      .eq("mall_id", "tubeping")
+      .maybeSingle();
+
+    if (cred?.client_id && cred?.client_secret) {
+      const basic = Buffer.from(`${cred.client_id}:${cred.client_secret}`).toString("base64");
+      try {
+        const res = await fetch(`https://tubeping.cafe24api.com/api/v2/oauth/token`, {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${basic}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            grant_type: "refresh_token",
+            refresh_token: tubeStore.refresh_token,
+          }).toString(),
+        });
+        const text = await res.text();
+        refreshAttempt = { status: res.status, body: text.slice(0, 600) };
+      } catch (e) {
+        refreshAttempt = { error: String(e) };
+      }
+    } else {
+      refreshAttempt = { skipped: "no client_id/secret" };
+    }
+  }
 
   const { data: store } = await supabaseAdmin
     .from("stores")
@@ -25,6 +68,8 @@ export async function GET(request: Request) {
     .maybeSingle();
 
   const result: Record<string, unknown> = {
+    refreshTokenInfo,
+    refreshAttempt,
     allStoresOverview: (allStores || []).map((s) => ({
       mall_id: s.mall_id,
       status: s.status,
