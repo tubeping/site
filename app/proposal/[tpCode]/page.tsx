@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase-server";
-import { getCafe24MappingByProductId, buildCafe24ProductUrl } from "@/lib/cafe24";
+import { getCafe24MappingByProductId, buildCafe24ProductUrl, getCafe24PageMeta } from "@/lib/cafe24";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import PrintButton from "./_components/PrintButton";
@@ -90,10 +90,18 @@ export default async function ProposalPage({ params }: Props) {
 
   // 카페24 매핑에서 product_no 가져와서 상세 페이지 URL 생성 (admin DB READ ONLY)
   const cafe24Mapping = await getCafe24MappingByProductId(product.id);
-  const detailUrl = cafe24Mapping?.cafe24_product_no
-    ? buildCafe24ProductUrl(cafe24Mapping.cafe24_product_no)
+  // 카페24 페이지 og 메타 (정식 URL, 큰 이미지)
+  const cafe24Meta = cafe24Mapping?.cafe24_product_no
+    ? await getCafe24PageMeta(cafe24Mapping.cafe24_product_no)
     : null;
-  // 특장점·상세 HTML은 현재 admin DB에 별도 컬럼 없음 (description 컬럼만 활용)
+  // 정식 URL (og:url) 우선, 없으면 cafe24.com 기본 URL
+  const detailUrl = cafe24Meta?.ogUrl
+    || (cafe24Mapping?.cafe24_product_no
+        ? buildCafe24ProductUrl(cafe24Mapping.cafe24_product_no)
+        : null);
+  // 메인 이미지: og:image (big) 우선, 없으면 admin DB image_url
+  const mainImage = cafe24Meta?.ogImage || product.image_url;
+  // 특장점·상세 HTML은 현재 admin DB에 별도 컬럼 없음
   const features = "";
   const detailHtml: string | null = null;
 
@@ -140,10 +148,10 @@ export default async function ProposalPage({ params }: Props) {
           <div className="grid md:grid-cols-2 gap-0 md:gap-8 px-6 sm:px-10 py-8">
             {/* 이미지 */}
             <div className="md:sticky md:top-24 self-start">
-              {product.image_url ? (
+              {mainImage ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
-                  src={product.image_url}
+                  src={mainImage}
                   alt={product.product_name}
                   className="w-full aspect-square object-cover rounded-xl bg-[#F9FAFB]"
                 />
@@ -207,15 +215,16 @@ export default async function ProposalPage({ params }: Props) {
                 </div>
               )}
 
-              {/* 상품 상세페이지 링크 */}
+              {/* 상품 상세페이지 버튼 (큰 사이즈) */}
               {detailUrl && (
                 <a
                   href={detailUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#C41E1E] hover:underline mb-6"
+                  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 bg-[#111111] text-white text-base font-bold px-6 py-3.5 rounded-xl hover:bg-[#333333] transition-colors mb-6"
                 >
-                  상품 상세 페이지 보기 →
+                  🔗 상품 상세 페이지에서 더 보기
+                  <span className="text-sm font-normal opacity-80">↗</span>
                 </a>
               )}
             </div>

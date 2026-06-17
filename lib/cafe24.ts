@@ -59,6 +59,59 @@ export async function getCafe24DetailUrl(productId: string): Promise<string | nu
   return buildCafe24ProductUrl(mapping.cafe24_product_no);
 }
 
+/**
+ * 카페24 페이지의 og 메타 태그를 가져옴 (공개 메타 정보만)
+ * - og:image (큰 사이즈 이미지)
+ * - og:url (정식 SEO URL)
+ * - og:title
+ */
+type Cafe24Meta = {
+  ogUrl: string | null;
+  ogImage: string | null;
+  ogTitle: string | null;
+};
+
+const metaCache = new Map<string, { value: Cafe24Meta | null; ts: number }>();
+const META_TTL = 30 * 60 * 1000; // 30분
+
+export async function getCafe24PageMeta(cafe24ProductNo: number): Promise<Cafe24Meta | null> {
+  const key = String(cafe24ProductNo);
+  const cached = metaCache.get(key);
+  if (cached && Date.now() - cached.ts < META_TTL) return cached.value;
+
+  try {
+    const res = await fetch(
+      `https://${TUBEPING_MALL_ID}.cafe24.com/product/detail.html?product_no=${cafe24ProductNo}`,
+      {
+        headers: { "User-Agent": "Mozilla/5.0 (TubePing-Site-Proposal-Renderer)" },
+        next: { revalidate: 1800 },
+      }
+    );
+    if (!res.ok) {
+      metaCache.set(key, { value: null, ts: Date.now() });
+      return null;
+    }
+    const html = await res.text();
+
+    const pick = (prop: string) => {
+      const re = new RegExp(`<meta[^>]+property=["']${prop}["'][^>]+content=["']([^"']+)["']`, "i");
+      const m = html.match(re);
+      return m?.[1] || null;
+    };
+
+    const meta: Cafe24Meta = {
+      ogUrl: pick("og:url"),
+      ogImage: pick("og:image"),
+      ogTitle: pick("og:title"),
+    };
+    metaCache.set(key, { value: meta, ts: Date.now() });
+    return meta;
+  } catch {
+    metaCache.set(key, { value: null, ts: Date.now() });
+    return null;
+  }
+}
+
 export function stripHtml(html: string | null | undefined): string {
   if (!html) return "";
   return html
