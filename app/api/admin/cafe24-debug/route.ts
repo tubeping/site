@@ -37,8 +37,12 @@ export async function GET(request: Request) {
       .eq("mall_id", "tubeping")
       .maybeSingle();
 
-    if (cred?.client_id && cred?.client_secret) {
-      const basic = Buffer.from(`${cred.client_id}:${cred.client_secret}`).toString("base64");
+    // tubeping store는 client_id/secret NULL → env z87 fallback (admin과 동일)
+    const clientId = cred?.client_id || process.env.CAFE24_CLIENT_ID?.trim();
+    const clientSecret = cred?.client_secret || process.env.CAFE24_CLIENT_SECRET?.trim();
+
+    if (clientId && clientSecret) {
+      const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
       try {
         const res = await fetch(`https://tubeping.cafe24api.com/api/v2/oauth/token`, {
           method: "POST",
@@ -57,7 +61,7 @@ export async function GET(request: Request) {
         refreshAttempt = { error: String(e) };
       }
     } else {
-      refreshAttempt = { skipped: "no client_id/secret" };
+      refreshAttempt = { skipped: "no client_id/secret (stores or env)" };
     }
   }
 
