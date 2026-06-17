@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase-server";
+import { searchCafe24ProductByName, getCafe24ProductUrl, stripHtml } from "@/lib/cafe24";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import PrintButton from "./_components/PrintButton";
@@ -87,9 +88,17 @@ export default async function ProposalPage({ params }: Props) {
       ? (creatorMargin / sellPrice) * 100
       : 0;
 
-  // 상품 상세 페이지 URL (카페24 쇼핑몰 — image_url의 cafe24 도메인에서 product_no 추출 가능하지만 안전하지 않으므로 직접 매핑 X)
-  // 추후 admin에 product_url 컬럼 추가 시 활용. 현재는 표시 안 함.
-  const detailUrl: string | null = null;
+  // 카페24에서 동적으로 상세 정보 가져오기 (특장점·상세설명·상세페이지 URL)
+  const cafe24Product = await searchCafe24ProductByName(product.product_name);
+  const detailUrl = cafe24Product ? await getCafe24ProductUrl(cafe24Product.product_no) : null;
+  // 특장점 = simple_description 또는 summary_description (둘 다 카페24 짧은 설명 필드)
+  const features = stripHtml(
+    cafe24Product?.simple_description || cafe24Product?.summary_description || ""
+  );
+  // 상품 설명 = description (HTML 포함). admin description이 있으면 그것을 우선
+  const detailHtml = (product.description && product.description.trim().length > 0)
+    ? null  // admin description을 plain text로 표시 (기존 섹션 활용)
+    : cafe24Product?.description || null;
 
   // 수익 시뮬레이션 (50/100/300/500개)
   const simulations = [50, 100, 300, 500].map((qty) => ({
@@ -215,13 +224,32 @@ export default async function ProposalPage({ params }: Props) {
             </div>
           </div>
 
-          {/* 상품 설명 (별도 섹션) */}
+          {/* 특장점 (카페24 simple/summary description) */}
+          {features && (
+            <div className="px-6 sm:px-10 py-8 border-t border-[#F0F0F0]">
+              <h2 className="text-xl font-bold text-[#111111] mb-4">상품 특장점</h2>
+              <p className="text-sm sm:text-base text-[#333333] leading-relaxed whitespace-pre-wrap">
+                {features}
+              </p>
+            </div>
+          )}
+
+          {/* 상품 설명 (admin description 우선, 없으면 카페24 description) */}
           {product.description && (
             <div className="px-6 sm:px-10 py-8 border-t border-[#F0F0F0]">
               <h2 className="text-xl font-bold text-[#111111] mb-4">상품 설명</h2>
               <p className="text-sm sm:text-base text-[#333333] leading-relaxed whitespace-pre-wrap">
                 {product.description}
               </p>
+            </div>
+          )}
+          {!product.description && detailHtml && (
+            <div className="px-6 sm:px-10 py-8 border-t border-[#F0F0F0]">
+              <h2 className="text-xl font-bold text-[#111111] mb-4">상품 상세</h2>
+              <div
+                className="prose-cafe24 text-sm sm:text-base text-[#333333] leading-relaxed [&_img]:max-w-full [&_img]:h-auto [&_img]:my-3 [&_img]:rounded-lg [&_p]:my-2 [&_table]:my-4 [&_table]:w-full"
+                dangerouslySetInnerHTML={{ __html: detailHtml }}
+              />
             </div>
           )}
 
