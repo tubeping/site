@@ -44,72 +44,21 @@ async function getCafe24Store(): Promise<Cafe24Store | null> {
 }
 
 /**
- * refresh_token으로 새 access_token 발급 + stores 테이블에 저장
- * 카페24는 refresh 시 새 refresh_token도 발급(rolling) → 동시에 저장해야 admin도 정상 작동
+ * stores 토큰은 admin과 공유되므로 site에서 직접 refresh 안 함 (race condition 방지).
+ * stores 토큰이 만료면 조용히 null 반환 → 카페24 API 미사용, graceful skip.
+ * (향후 site 전용 OAuth client_id가 발급되면 자체 refresh 활성화 가능)
  */
-async function refreshAccessToken(store: Cafe24Store): Promise<string | null> {
-  if (!store.refresh_token || !store.mall_id) return null;
-  const clientId = store.client_id || process.env.CAFE24_CLIENT_ID?.trim();
-  const clientSecret = store.client_secret || process.env.CAFE24_CLIENT_SECRET?.trim();
-  if (!clientId || !clientSecret) return null;
-
-  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
-  try {
-    const res = await fetch(`https://${store.mall_id}.cafe24api.com/api/v2/oauth/token`, {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${basic}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        grant_type: "refresh_token",
-        refresh_token: store.refresh_token,
-      }).toString(),
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    const newAccess = json.access_token as string | undefined;
-    const newRefresh = json.refresh_token as string | undefined;
-    const expiresAt = json.expires_at as string | undefined;
-    if (!newAccess) return null;
-
-    // 즉시 stores에 저장 (admin도 동일 토큰 공유 → 충돌 방지)
-    await supabaseAdmin
-      .from("stores")
-      .update({
-        access_token: newAccess,
-        refresh_token: newRefresh || store.refresh_token,
-        token_expires_at: expiresAt || null,
-      })
-      .eq("mall_id", store.mall_id);
-
-    // in-memory 캐시도 갱신
-    cachedStore = {
-      ...store,
-      access_token: newAccess,
-      refresh_token: newRefresh || store.refresh_token,
-      token_expires_at: expiresAt || null,
-    };
-    cachedStoreAt = Date.now();
-    return newAccess;
-  } catch {
-    return null;
-  }
-}
-
 async function getValidAccessToken(): Promise<{ mallId: string; accessToken: string; storeUrl: string | null } | null> {
   const store = await getCafe24Store();
-  if (!store?.mall_id) return null;
+  if (!store?.mall_id || !store?.access_token) return null;
 
-  // 토큰 만료 임박(5분 이내) 또는 없음이면 refresh
-  let token = store.access_token;
+  // stores의 token_expires_at은 admin이 관리. site는 그 값을 신뢰하고 read only.
   const expiresAt = store.token_expires_at ? new Date(store.token_expires_at).getTime() : 0;
   const now = Date.now();
-  if (!token || expiresAt - now < 5 * 60 * 1000) {
-    token = await refreshAccessToken(store);
-  }
-  if (!token) return null;
-  return { mallId: store.mall_id, accessToken: token, storeUrl: store.store_url };
+  // 만료됐으면 사용 안 함 (admin이 갱신할 때까지 대기)
+  if (expiresAt && expiresAt < now) return null;
+
+  return { mallId: store.mall_id, accessToken: store.access_token, storeUrl: store.store_url };
 }
 
 const productCache = new Map<string, { value: Cafe24Product | null; ts: number }>();
@@ -146,15 +95,8 @@ export async function searchCafe24ProductByName(productName: string): Promise<Ca
   }
 
   try {
-    let res = await doFetch(cred.accessToken);
-    // 401이면 강제 refresh 후 재시도
-    if (res.status === 401) {
-      cachedStoreAt = 0; // store cache 무효화
-      const fresh = await getValidAccessToken();
-      if (fresh) {
-        res = await doFetch(fresh.accessToken);
-      }
-    }
+    const res = await doFetch(cred.accessToken);
+    // 401이면 admin이 새 토큰으로 갱신할 때까지 대기 (site에서 refresh 안 함)
     if (!res.ok) {
       productCache.set(key, { value: null, ts: Date.now() });
       return null;
