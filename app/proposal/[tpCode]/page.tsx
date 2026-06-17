@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase-server";
-import { searchCafe24ProductByName, getCafe24ProductUrl, stripHtml } from "@/lib/cafe24";
+import { getCafe24MappingByProductId, buildCafe24ProductUrl } from "@/lib/cafe24";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import PrintButton from "./_components/PrintButton";
@@ -88,17 +88,14 @@ export default async function ProposalPage({ params }: Props) {
       ? (creatorMargin / sellPrice) * 100
       : 0;
 
-  // 카페24에서 동적으로 상세 정보 가져오기 (특장점·상세설명·상세페이지 URL)
-  const cafe24Product = await searchCafe24ProductByName(product.product_name);
-  const detailUrl = cafe24Product ? await getCafe24ProductUrl(cafe24Product.product_no) : null;
-  // 특장점 = simple_description 또는 summary_description (둘 다 카페24 짧은 설명 필드)
-  const features = stripHtml(
-    cafe24Product?.simple_description || cafe24Product?.summary_description || ""
-  );
-  // 상품 설명 = description (HTML 포함). admin description이 있으면 그것을 우선
-  const detailHtml = (product.description && product.description.trim().length > 0)
-    ? null  // admin description을 plain text로 표시 (기존 섹션 활용)
-    : cafe24Product?.description || null;
+  // 카페24 매핑에서 product_no 가져와서 상세 페이지 URL 생성 (admin DB READ ONLY)
+  const cafe24Mapping = await getCafe24MappingByProductId(product.id);
+  const detailUrl = cafe24Mapping?.cafe24_product_no
+    ? buildCafe24ProductUrl(cafe24Mapping.cafe24_product_no)
+    : null;
+  // 특장점·상세 HTML은 현재 admin DB에 별도 컬럼 없음 (description 컬럼만 활용)
+  const features = "";
+  const detailHtml: string | null = null;
 
   // 수익 시뮬레이션 (50/100/300/500개)
   const simulations = [50, 100, 300, 500].map((qty) => ({
