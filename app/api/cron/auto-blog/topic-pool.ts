@@ -664,4 +664,211 @@ export const TOPIC_POOL: TopicSeed[] = [
     category: "트렌드",
     angle: "버추얼 휴먼 성장세, 진짜 크리에이터의 차별화 포인트",
   },
+
+  // ═══════════════════════════════════════════════════
+  // AI·뉴스 관련 주제 30개 (2026-06-17 추가)
+  // 크리에이터·인플루언서를 위한 AI 도구·뉴스·정책·트렌드
+  // ═══════════════════════════════════════════════════
+
+  // === AI 영상·이미지 생성 도구 ===
+  {
+    title: "Sora 2 vs Veo 3 vs Runway Gen-4 — 크리에이터용 AI 영상 도구 비교",
+    targetKeywords: ["Sora 2", "Veo 3", "Runway Gen-4", "AI 영상 생성", "AI 비디오 도구"],
+    category: "트렌드",
+    angle: "OpenAI Sora 2, Google Veo 3, Runway Gen-4 — 2026년 최신 AI 영상 모델. 길이·해상도·가격·한국어 처리 비교, 크리에이터 워크플로 통합 사례",
+  },
+  {
+    title: "Midjourney v7 + Nano Banana — 썸네일·소품 이미지 자동 생성",
+    targetKeywords: ["Midjourney v7", "Nano Banana", "Gemini 이미지", "AI 썸네일", "이미지 생성 AI"],
+    category: "가이드",
+    angle: "한국어 프롬프트 처리, 일관된 캐릭터 유지, 워터마크 정책. 썸네일 1장 30초에 만드는 워크플로",
+  },
+  {
+    title: "AI 영상 자막 자동 생성 — Whisper·CapCut AI·Premiere Pro 비교",
+    targetKeywords: ["AI 자막", "Whisper", "CapCut AI", "프리미어 자막"],
+    category: "가이드",
+    angle: "한국어 정확도 비교, 자동 번역 품질, 자막 SEO 효과. 1시간 영상 5분 안에 자막 완성",
+  },
+  {
+    title: "AI 더빙·음성 합성 — ElevenLabs·HeyGen으로 외국어 채널 만들기",
+    targetKeywords: ["AI 더빙", "ElevenLabs", "HeyGen", "AI 음성"],
+    category: "전략",
+    angle: "한국 채널의 글로벌 진출 도구. 다국어 음성 복제, 입모양 동기화, 비용 분석",
+  },
+  {
+    title: "AI 음악·BGM 생성 — Suno·Udio로 저작권 걱정 없는 음악 만들기",
+    targetKeywords: ["AI 음악", "Suno", "Udio", "AI BGM"],
+    category: "가이드",
+    angle: "저작권 무료 BGM 무한 생성. 장르·분위기·가사 한국어 입력 가이드",
+  },
+  {
+    title: "AI 편집 도구 — Descript·Runway·CapCut Pro의 자동 편집 기능",
+    targetKeywords: ["AI 영상 편집", "Descript", "자동 편집", "AI 컷편집"],
+    category: "가이드",
+    angle: "음성 텍스트 편집, 자동 컷, 노이즈 제거. 편집 시간 1/3로 줄이는 워크플로",
+  },
+
+  // === AI 활용 & 워크플로 ===
+  {
+    title: "ChatGPT·Claude·Gemini — 크리에이터가 매일 쓰는 LLM 선택 가이드",
+    targetKeywords: ["ChatGPT 크리에이터", "Claude 활용", "Gemini 활용", "LLM 비교"],
+    category: "가이드",
+    angle: "스크립트 작성·아이디어 발굴·댓글 응대·자료 조사 각 용도별 최적 모델. 월 구독 비용 대비 효과",
+  },
+  {
+    title: "AI 시대 크리에이터의 핵심 역량 — 자동화로 대체되지 않는 5가지",
+    targetKeywords: ["AI 시대 크리에이터", "AI 대체", "크리에이터 차별화"],
+    category: "전략",
+    angle: "퍼스널 브랜드, 실제 경험, 커뮤니티, 신뢰, 큐레이션. AI가 못 만드는 가치",
+  },
+  {
+    title: "AI 프롬프트 엔지니어링 — 유튜브 영상 기획에 활용하는 5단계",
+    targetKeywords: ["프롬프트 엔지니어링", "AI 영상 기획", "ChatGPT 영상"],
+    category: "가이드",
+    angle: "주제 선정→타깃 분석→스크립트→썸네일→제목 5단계 프롬프트 템플릿",
+  },
+  {
+    title: "AI로 영상 1편 만드는 풀스택 워크플로 — 기획부터 업로드까지",
+    targetKeywords: ["AI 영상 제작", "AI 워크플로", "1인 미디어 자동화"],
+    category: "가이드",
+    angle: "ChatGPT 기획 → Suno 음악 → Midjourney 이미지 → ElevenLabs 더빙 → CapCut 편집. 3시간 영상 30분 안에",
+  },
+  {
+    title: "AI로 만든 영상 — 시청자에게 공개해야 하나?",
+    targetKeywords: ["AI 영상 공개", "AI 라벨", "AI 윤리"],
+    category: "전략",
+    angle: "유튜브 AI 콘텐츠 라벨 정책, 시청자 신뢰, 투명성과 매출 영향",
+  },
+
+  // === AI 알고리즘·검색 변화 ===
+  {
+    title: "Google AI Overview·AI 모드 — 유튜브 트래픽에 미치는 영향",
+    targetKeywords: ["Google AI Overview", "AI 모드", "AI 검색", "유튜브 트래픽"],
+    category: "트렌드",
+    angle: "AI 검색 노출 변화 데이터, 영상 노출 줄어드는 검색어 패턴, 크리에이터 대응",
+  },
+  {
+    title: "ChatGPT·Perplexity에 내 콘텐츠 노출시키는 GEO 가이드 2026",
+    targetKeywords: ["GEO", "AI 검색 최적화", "ChatGPT 인용", "Perplexity 노출"],
+    category: "가이드",
+    angle: "llms.txt, 구조화 데이터, 인용 가능 facts, AI 봇 허용. 실측 노출 변화",
+  },
+  {
+    title: "유튜브 AI 추천 알고리즘 2026 — 변화한 가중치 4가지",
+    targetKeywords: ["유튜브 AI 알고리즘", "유튜브 추천", "2026 알고리즘"],
+    category: "트렌드",
+    angle: "세션 유지·AI 분석 콘텐츠 품질·시청자 만족도·신규 vs 재방문 가중치 변화",
+  },
+  {
+    title: "AI 검색 시대 — 영상보다 인용되는 콘텐츠 만들기",
+    targetKeywords: ["AI 인용", "AEO 콘텐츠", "AI 답변 노출"],
+    category: "전략",
+    angle: "AI가 답변으로 발췌하는 콘텐츠 패턴. 구체적 통계·Q&A·전문가 인용 구조",
+  },
+
+  // === AI 가상 인플루언서·디지털 휴먼 ===
+  {
+    title: "한국 가상 인플루언서 시장 2026 — 로지·루이·릴리 매출 분석",
+    targetKeywords: ["가상 인플루언서", "버추얼 휴먼", "로지", "한국 AI 인플루언서"],
+    category: "트렌드",
+    angle: "주요 가상 인플루언서 협찬 단가·매출 추정, 진짜 크리에이터와의 차이점",
+  },
+  {
+    title: "내 채널의 AI 아바타 만들기 — HeyGen·Synthesia 활용",
+    targetKeywords: ["AI 아바타", "HeyGen 아바타", "Synthesia 한국어", "내 디지털 휴먼"],
+    category: "가이드",
+    angle: "얼굴 노출 없이 영상 만들기, 외국어 채널 운영, 비용·품질 비교",
+  },
+  {
+    title: "AI 카메오·딥페이크 위기 — 크리에이터가 자신을 보호하는 5가지",
+    targetKeywords: ["AI 딥페이크", "크리에이터 보호", "AI 카메오 위협"],
+    category: "전략",
+    angle: "내 얼굴·목소리 무단 사용 대응, 법적 조치, 워터마크·인증 활용",
+  },
+
+  // === AI 정책·법규·저작권 ===
+  {
+    title: "한국 AI 콘텐츠 라벨 의무화 — 크리에이터가 알아야 할 2026 법규",
+    targetKeywords: ["AI 콘텐츠 라벨", "AI 의무공시", "한국 AI 법"],
+    category: "가이드",
+    angle: "방통위·공정위 AI 표시 의무, 위반 시 과태료, 영상에 라벨 표시 방법",
+  },
+  {
+    title: "AI 학습 데이터 — 내 영상이 AI 학습에 쓰이는 걸 막을 수 있나?",
+    targetKeywords: ["AI 학습 차단", "콘텐츠 보호", "robots.txt AI"],
+    category: "가이드",
+    angle: "GPTBot·ClaudeBot 차단, opt-out 정책, 유튜브의 AI 학습 정책 변화",
+  },
+  {
+    title: "AI 생성 콘텐츠 저작권 — 내가 만든 AI 영상의 권리는?",
+    targetKeywords: ["AI 저작권", "AI 콘텐츠 권리", "AI 생성 영상 저작권"],
+    category: "가이드",
+    angle: "한국 저작권법상 AI 생성물의 지위, 등록 가능 여부, 글로벌 판례 비교",
+  },
+
+  // === AI 활용 비즈니스 ===
+  {
+    title: "AI로 자동화한 1인 미디어 — 매일 영상 1편 발행 가능한가?",
+    targetKeywords: ["AI 1인 미디어", "AI 자동 발행", "AI 채널 운영"],
+    category: "전략",
+    angle: "전 과정 AI 자동화 실험 사례, 품질·매출·구독 변화, 한계와 가능성",
+  },
+  {
+    title: "AI 콘텐츠 양산 채널 — 빠른 성장 vs 알고리즘 페널티 위험",
+    targetKeywords: ["AI 양산 채널", "AI 슬롭", "유튜브 AI 정책"],
+    category: "트렌드",
+    angle: "AI Slop 문제, 유튜브 정책 강화, 양보다 질로 가는 새로운 균형",
+  },
+  {
+    title: "AI 데이터 분석 도구 — 채널 성장에 쓰는 자동화",
+    targetKeywords: ["AI 분석", "유튜브 AI 도구", "vidIQ AI"],
+    category: "가이드",
+    angle: "vidIQ·TubeBuddy·Social Blade의 AI 기능, 경쟁 분석·키워드 발굴 자동화",
+  },
+  {
+    title: "AI 자동 답글·DM 응대 — 팬과의 거리 유지 vs 효율",
+    targetKeywords: ["AI 댓글 응대", "DM 자동화", "AI 챗봇 크리에이터"],
+    category: "전략",
+    angle: "댓글·DM 자동 응답 도구, 진정성 유지 가이드, 성공·실패 사례",
+  },
+
+  // === AI 시대 마케팅·커머스 ===
+  {
+    title: "AI 추천 시대 크리에이터 커머스 — 인플루언서가 살아남는 이유",
+    targetKeywords: ["AI 추천 커머스", "인플루언서 커머스", "AI 쇼핑"],
+    category: "트렌드",
+    angle: "AI가 상품을 추천하는 시대, 그래도 사람의 큐레이션이 필요한 영역",
+  },
+  {
+    title: "AI 개인화 마케팅 — 구독자별 맞춤 콘텐츠 자동화",
+    targetKeywords: ["AI 개인화", "맞춤 콘텐츠", "AI 추천"],
+    category: "전략",
+    angle: "구독자 세그먼트 분석, 개인화 알림·이메일, 전환율 데이터",
+  },
+  {
+    title: "AI 트렌드 발굴 — 다음 핫한 콘텐츠 주제 찾는 자동화 워크플로",
+    targetKeywords: ["AI 트렌드", "콘텐츠 아이디어 AI", "트렌드 분석"],
+    category: "가이드",
+    angle: "Google Trends·NewsAPI + ChatGPT로 매일 자동 트렌드 리포트 받기",
+  },
+
+  // === AI 뉴스·이슈 모니터링형 ===
+  {
+    title: "이번 달 크리에이터 AI 도구 출시 — 무엇이 새로 나왔나",
+    targetKeywords: ["AI 도구 출시", "신규 AI 서비스", "AI 뉴스"],
+    category: "트렌드",
+    angle: "월별로 새로 출시된 크리에이터 AI 도구 정리, 핵심 기능과 가격, 활용 추천",
+  },
+  {
+    title: "OpenAI·Anthropic·Google AI 정책 변화 — 크리에이터에게 무엇이 의미하는가",
+    targetKeywords: ["OpenAI 정책", "AI 정책 변화", "Anthropic 정책"],
+    category: "트렌드",
+    angle: "최신 AI 서비스 약관·정책 변화, 콘텐츠 사용권, 학습 거부권 등",
+  },
+  {
+    title: "AI 시대 5년 후 크리에이터 — 살아남을 직업·사라질 영역",
+    targetKeywords: ["AI 시대 직업", "크리에이터 미래", "AI 대체 위험"],
+    category: "트렌드",
+    angle: "각 카테고리별 AI 대체 위험도, 살아남는 크리에이터의 5가지 공통점",
+  },
 ];
