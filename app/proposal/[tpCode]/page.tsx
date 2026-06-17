@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase-server";
-import { getCafe24MappingByProductId, buildCafe24ProductUrl, getCafe24PageMeta } from "@/lib/cafe24";
+import { getCafe24MappingByProductId, buildCafe24ProductUrl, getCafe24ProductDetail } from "@/lib/cafe24";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import PrintButton from "./_components/PrintButton";
@@ -88,22 +88,20 @@ export default async function ProposalPage({ params }: Props) {
       ? (creatorMargin / sellPrice) * 100
       : 0;
 
-  // 카페24 매핑에서 product_no 가져와서 상세 페이지 URL 생성 (admin DB READ ONLY)
+  // 카페24 매핑에서 product_no 가져와서 상세 정보 fetch (admin DB READ ONLY + tubeping.com 본문)
   const cafe24Mapping = await getCafe24MappingByProductId(product.id);
-  // 카페24 페이지 og 메타 (정식 URL, 큰 이미지)
-  const cafe24Meta = cafe24Mapping?.cafe24_product_no
-    ? await getCafe24PageMeta(cafe24Mapping.cafe24_product_no)
-    : null;
-  // 정식 URL (og:url) 우선, 없으면 cafe24.com 기본 URL
-  const detailUrl = cafe24Meta?.ogUrl
+  const cafe24Detail = cafe24Mapping?.cafe24_product_no
+    ? await getCafe24ProductDetail(cafe24Mapping.cafe24_product_no)
+    : { html: null, meta: null };
+
+  const detailUrl = cafe24Detail.meta?.ogUrl
     || (cafe24Mapping?.cafe24_product_no
         ? buildCafe24ProductUrl(cafe24Mapping.cafe24_product_no)
         : null);
-  // 메인 이미지: og:image (big) 우선, 없으면 admin DB image_url
-  const mainImage = cafe24Meta?.ogImage || product.image_url;
-  // 특장점·상세 HTML은 현재 admin DB에 별도 컬럼 없음
+  const mainImage = cafe24Detail.meta?.ogImage || product.image_url;
   const features = "";
-  const detailHtml: string | null = null;
+  // 카페24 본문 HTML — 자기 회사 자산이므로 직접 표시
+  const detailHtml: string | null = cafe24Detail.html;
 
   // 수익 시뮬레이션 (50/100/300/500개)
   const simulations = [50, 100, 300, 500].map((qty) => ({
@@ -249,13 +247,26 @@ export default async function ProposalPage({ params }: Props) {
               </p>
             </div>
           )}
-          {!product.description && detailHtml && (
+          {detailHtml && (
             <div className="px-6 sm:px-10 py-8 border-t border-[#F0F0F0]">
-              <h2 className="text-xl font-bold text-[#111111] mb-4">상품 상세</h2>
+              <h2 className="text-xl font-bold text-[#111111] mb-4">상품 상세 페이지</h2>
               <div
-                className="prose-cafe24 text-sm sm:text-base text-[#333333] leading-relaxed [&_img]:max-w-full [&_img]:h-auto [&_img]:my-3 [&_img]:rounded-lg [&_p]:my-2 [&_table]:my-4 [&_table]:w-full"
+                className="cafe24-detail text-sm sm:text-base text-[#333333] leading-relaxed [&_img]:max-w-full [&_img]:h-auto [&_img]:my-2 [&_img]:block [&_img]:mx-auto [&_p]:my-2 [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-[#E5E7EB] [&_td]:p-2 [&_th]:border [&_th]:border-[#E5E7EB] [&_th]:p-2 [&_th]:bg-[#F9FAFB]"
                 dangerouslySetInnerHTML={{ __html: detailHtml }}
               />
+              <div className="mt-6 text-xs text-[#999999]">
+                원본:{" "}
+                {detailUrl && (
+                  <a
+                    href={detailUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#C41E1E] hover:underline"
+                  >
+                    카페24 상세 페이지
+                  </a>
+                )}
+              </div>
             </div>
           )}
 

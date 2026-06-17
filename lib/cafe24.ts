@@ -112,6 +112,112 @@ export async function getCafe24PageMeta(cafe24ProductNo: number): Promise<Cafe24
   }
 }
 
+/**
+ * 카페24 상품 상세 본문(HTML) 추출.
+ * <div id="prdDetail"> ~ <div id="review"> 사이의 HTML을 잘라서 반환.
+ * - script/iframe/style/link/meta 제거
+ * - on* 이벤트 핸들러 제거
+ * - 상대 src/href를 절대 URL로 변환
+ * 같은 회사 자산(tubeping.com)이라 ToS 위반 없음.
+ */
+type Cafe24Detail = {
+  html: string | null;
+  meta: Cafe24Meta | null;
+};
+
+const detailCache = new Map<string, { value: Cafe24Detail; ts: number }>();
+const DETAIL_TTL = 30 * 60 * 1000; // 30분
+
+function sanitizeAndAbsolutize(html: string): string {
+  const base = `https://${TUBEPING_MALL_ID}.cafe24.com`;
+  return html
+    // 위험 태그 통째로 제거
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, "")
+    .replace(/<link[^>]*>/gi, "")
+    .replace(/<meta[^>]*>/gi, "")
+    // 이벤트 핸들러 제거 (onclick, onload 등)
+    .replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    // 빈 div(width=0 등) 광고 트래커 의심 제거
+    .replace(/<img[^>]*width=["']?[01]["']?[^>]*>/gi, "")
+    // src/href 상대경로 → 절대경로 (// 시작은 https: prefix)
+    .replace(/(\s(?:src|href)=["'])\/\/([^"']+)/gi, `$1https://$2`)
+    .replace(/(\s(?:src|href)=["'])\/(?!\/)([^"']+)/gi, `$1${base}/$2`);
+}
+
+export async function getCafe24ProductDetail(
+  cafe24ProductNo: number
+): Promise<Cafe24Detail> {
+  const key = String(cafe24ProductNo);
+  const cached = detailCache.get(key);
+  if (cached && Date.now() - cached.ts < DETAIL_TTL) return cached.value;
+
+  const empty: Cafe24Detail = { html: null, meta: null };
+
+  try {
+    const res = await fetch(
+      `https://${TUBEPING_MALL_ID}.cafe24.com/product/detail.html?product_no=${cafe24ProductNo}`,
+      {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; TubePing-Proposal/1.0)" },
+        next: { revalidate: 1800 },
+      }
+    );
+    if (!res.ok) {
+      detailCache.set(key, { value: empty, ts: Date.now() });
+      return empty;
+    }
+    const fullHtml = await res.text();
+
+    // og 메타 추출
+    const pickMeta = (prop: string) => {
+      const re = new RegExp(
+        `<meta[^>]+property=["']${prop}["'][^>]+content=["']([^"']+)["']`,
+        "i"
+      );
+      const m = fullHtml.match(re);
+      return m?.[1] || null;
+    };
+    const meta: Cafe24Meta = {
+      ogUrl: pickMeta("og:url"),
+      ogImage: pickMeta("og:image"),
+      ogTitle: pickMeta("og:title"),
+    };
+
+    // 본문 영역 추출: <div id="prdDetail"> ~ <div id="review">
+    const startMatch = fullHtml.match(/<div[^>]*id=["']prdDetail["'][^>]*>/i);
+    if (!startMatch || startMatch.index === undefined) {
+      const value = { html: null, meta };
+      detailCache.set(key, { value, ts: Date.now() });
+      return value;
+    }
+    const startIdx = startMatch.index + startMatch[0].length;
+    const remaining = fullHtml.slice(startIdx);
+    // 다음 형제 영역 시작점(review/qna/related 등) 찾기
+    const endMatch = remaining.match(
+      /<div[^>]*id=["'](?:review|qna|prdReview|relatedProduct|relation|recommend)["'][^>]*>/i
+    );
+    const endIdx = endMatch?.index ?? remaining.length;
+    let body = remaining.slice(0, endIdx);
+
+    // 마지막 닫는 </div> 1개는 prdDetail의 짝이므로 제거 (균형 맞추기)
+    body = body.replace(/<\/div>\s*$/, "");
+
+    body = sanitizeAndAbsolutize(body);
+
+    // 너무 크면 자름 (300KB)
+    if (body.length > 300000) body = body.slice(0, 300000);
+
+    const value: Cafe24Detail = { html: body, meta };
+    detailCache.set(key, { value, ts: Date.now() });
+    return value;
+  } catch {
+    detailCache.set(key, { value: empty, ts: Date.now() });
+    return empty;
+  }
+}
+
 export function stripHtml(html: string | null | undefined): string {
   if (!html) return "";
   return html
