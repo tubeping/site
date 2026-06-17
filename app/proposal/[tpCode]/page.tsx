@@ -66,17 +66,30 @@ export default async function ProposalPage({ params }: Props) {
   // 비표시·미승인 상품은 노출하지 않음
   if (product.display !== "T" || product.approval_status !== "approved") notFound();
 
-  const sellPrice = product.price || 0;
+  const sellPrice = product.price || 0; // 공구가
   const supplyPrice = product.supply_price || 0;
-  // 크리에이터 예상 수익 = 판매가 - 공급가 (배송비/수수료는 별도)
-  // 단, supply_price를 직접 표시하지 않고 마진만 표시
+  // 정상가 = retail_price (없거나 0이면 공구가와 동일)
+  const normalPrice =
+    product.retail_price && product.retail_price > sellPrice
+      ? product.retail_price
+      : sellPrice;
+  const hasDiscount = normalPrice > sellPrice;
+  const discountRate = hasDiscount
+    ? Math.round(((normalPrice - sellPrice) / normalPrice) * 100)
+    : 0;
+
+  // 공구 수수료 = 공구가 - 공급가 (크리에이터가 가져가는 금액)
   const creatorMargin = Math.max(0, sellPrice - supplyPrice);
   const marginRate =
     product.margin_rate != null
       ? Number(product.margin_rate)
       : sellPrice > 0
-      ? ((creatorMargin / sellPrice) * 100)
+      ? (creatorMargin / sellPrice) * 100
       : 0;
+
+  // 상품 상세 페이지 URL (카페24 쇼핑몰 — image_url의 cafe24 도메인에서 product_no 추출 가능하지만 안전하지 않으므로 직접 매핑 X)
+  // 추후 admin에 product_url 컬럼 추가 시 활용. 현재는 표시 안 함.
+  const detailUrl: string | null = null;
 
   // 수익 시뮬레이션 (50/100/300/500개)
   const simulations = [50, 100, 300, 500].map((qty) => ({
@@ -137,55 +150,80 @@ export default async function ProposalPage({ params }: Props) {
 
             {/* 정보 */}
             <div className="mt-8 md:mt-0">
+              {/* 가격 (정상가 → 공구가 → 할인율) */}
               <div className="mb-8">
-                <div className="text-sm text-[#666666] mb-1">권장 판매가</div>
-                <div className="text-3xl sm:text-4xl font-extrabold text-[#111111]">
-                  ₩ {num(sellPrice)}
+                {hasDiscount && (
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-sm text-[#999999]">정상가</span>
+                    <span className="text-base text-[#999999] line-through">
+                      ₩ {num(normalPrice)}
+                    </span>
+                  </div>
+                )}
+                <div className="text-sm text-[#666666] mb-1">공구가</div>
+                <div className="flex items-baseline gap-3 flex-wrap">
+                  <div className="text-3xl sm:text-4xl font-extrabold text-[#111111]">
+                    ₩ {num(sellPrice)}
+                  </div>
+                  {hasDiscount && (
+                    <span className="text-lg font-extrabold text-[#C41E1E]">
+                      {discountRate}% 할인
+                    </span>
+                  )}
                 </div>
               </div>
 
+              {/* 공구 수수료 (= 크리에이터 수익) */}
               <div className="space-y-4 p-5 bg-[#FFF8F8] rounded-xl border border-[#FFE0E0] mb-8">
                 <div className="flex justify-between items-baseline">
-                  <span className="text-sm text-[#666666]">크리에이터 예상 마진율</span>
+                  <span className="text-sm text-[#666666]">크리에이터 수수료율</span>
                   <span className="text-2xl font-extrabold text-[#C41E1E]">
                     {marginRate.toFixed(1)}%
                   </span>
                 </div>
                 <div className="flex justify-between items-baseline pt-3 border-t border-[#FFE0E0]">
-                  <span className="text-sm text-[#666666]">건당 예상 수익</span>
+                  <span className="text-sm text-[#666666]">건당 공구 수수료</span>
                   <span className="text-lg font-bold text-[#111111]">
                     ₩ {num(creatorMargin)}
                   </span>
                 </div>
               </div>
 
-              {/* 공급사 정보 */}
-              {product.supplier && (
-                <div className="mb-6 text-sm">
-                  <span className="text-[#666666]">공급사: </span>
-                  <span className="font-medium text-[#111111]">{product.supplier}</span>
-                </div>
-              )}
-
+              {/* 배송비 */}
               {product.supply_shipping_fee !== undefined && (
                 <div className="mb-6 text-sm">
                   <span className="text-[#666666]">배송비: </span>
                   <span className="font-medium text-[#111111]">
-                    {product.supply_shipping_fee > 0 ? `₩ ${num(product.supply_shipping_fee)}` : "무료"}
+                    {product.supply_shipping_fee > 0
+                      ? `₩ ${num(product.supply_shipping_fee)}`
+                      : "무료"}
                   </span>
                 </div>
               )}
 
-              {product.description && (
-                <div className="mb-6">
-                  <div className="text-sm text-[#666666] mb-2 font-medium">상품 설명</div>
-                  <p className="text-sm text-[#333333] leading-relaxed whitespace-pre-wrap">
-                    {product.description}
-                  </p>
-                </div>
+              {/* 상품 상세페이지 링크 */}
+              {detailUrl && (
+                <a
+                  href={detailUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#C41E1E] hover:underline mb-6"
+                >
+                  상품 상세 페이지 보기 →
+                </a>
               )}
             </div>
           </div>
+
+          {/* 상품 설명 (별도 섹션) */}
+          {product.description && (
+            <div className="px-6 sm:px-10 py-8 border-t border-[#F0F0F0]">
+              <h2 className="text-xl font-bold text-[#111111] mb-4">상품 설명</h2>
+              <p className="text-sm sm:text-base text-[#333333] leading-relaxed whitespace-pre-wrap">
+                {product.description}
+              </p>
+            </div>
+          )}
 
           {/* 수익 시뮬레이션 */}
           <div className="px-6 sm:px-10 py-8 bg-[#F9FAFB] print:bg-white border-t border-[#F0F0F0]">
