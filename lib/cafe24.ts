@@ -130,7 +130,7 @@ const DETAIL_TTL = 30 * 60 * 1000; // 30분
 
 function sanitizeAndAbsolutize(html: string): string {
   const base = `https://${TUBEPING_MALL_ID}.cafe24.com`;
-  return html
+  let s = html
     // 위험 태그 통째로 제거
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
@@ -140,11 +140,28 @@ function sanitizeAndAbsolutize(html: string): string {
     .replace(/<meta[^>]*>/gi, "")
     // 이벤트 핸들러 제거 (onclick, onload 등)
     .replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    // 카페24 lazy load 속성 → 표준 src로 변환 (서버사이드 렌더링용)
+    .replace(/\sec-data-src=/gi, " src=")
+    .replace(/\sdata-original=/gi, " src=")
+    .replace(/\sdata-lazy-src=/gi, " src=")
+    .replace(/\sdata-src=/gi, " src=")
     // 빈 div(width=0 등) 광고 트래커 의심 제거
     .replace(/<img[^>]*width=["']?[01]["']?[^>]*>/gi, "")
     // src/href 상대경로 → 절대경로 (// 시작은 https: prefix)
     .replace(/(\s(?:src|href)=["'])\/\/([^"']+)/gi, `$1https://$2`)
     .replace(/(\s(?:src|href)=["'])\/(?!\/)([^"']+)/gi, `$1${base}/$2`);
+
+  // 한 태그에 src가 중복으로 생긴 경우(원래 src placeholder + 변환된 src) → 마지막 src만 남김
+  s = s.replace(/<img\b([^>]*)>/gi, (full, attrs) => {
+    const srcs = [...attrs.matchAll(/\ssrc=("[^"]*"|'[^']*')/gi)];
+    if (srcs.length <= 1) return full;
+    // 마지막 src를 채택 (lazy 변환된 실제 URL이 보통 뒤에 옴)
+    const last = srcs[srcs.length - 1][1];
+    const cleaned = attrs.replace(/\ssrc=("[^"]*"|'[^']*')/gi, "");
+    return `<img${cleaned} src=${last}>`;
+  });
+
+  return s;
 }
 
 export async function getCafe24ProductDetail(
