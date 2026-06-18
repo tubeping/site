@@ -306,7 +306,7 @@ export default async function ProposalPage({ params }: Props) {
               href="/#contact"
               className="inline-block bg-[#C41E1E] text-white font-bold text-base sm:text-lg px-8 py-3.5 rounded-full hover:bg-[#A01818] transition-all hover:shadow-lg hover:shadow-[#C41E1E]/20"
             >
-              🚀 무료 입점 신청하기
+              🚀 공구 신청하기
             </Link>
           </div>
 
