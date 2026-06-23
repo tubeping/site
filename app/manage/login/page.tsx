@@ -1,5 +1,8 @@
+import { Suspense } from "react";
 import LoginForm from "./_components/LoginForm";
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "관리자 로그인 — TubePing",
@@ -16,7 +19,9 @@ export default function ManageLoginPage() {
           <span className="text-[#666666] text-sm ml-2 font-normal">관리자</span>
         </h1>
         <p className="text-sm text-[#666666] mb-6">비밀번호를 입력하세요.</p>
-        <LoginForm />
+        <Suspense fallback={<div className="text-sm text-[#999999]">로딩...</div>}>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   );
