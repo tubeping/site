@@ -39,7 +39,7 @@ const HOMEPAGE_ALLOWED_PATHS = new Set([
   "/sitemap.xml", "/robots.txt", "/feed.xml", "/llms.txt",
   "/favicon.ico", "/favicon.png", "/og-image.png",
 ]);
-const HOMEPAGE_ALLOWED_PREFIXES = ["/blog/", "/api/blog", "/api/apply", "/_next/", "/api/cron/", "/api/admin/", "/partners/", "/proposal/"];
+const HOMEPAGE_ALLOWED_PREFIXES = ["/blog/", "/api/blog", "/api/apply", "/_next/", "/api/cron/", "/api/admin/", "/api/manage/", "/manage/", "/partners/", "/proposal/"];
 
 function isHomepageOnlyHost(hostname: string) {
   return HOMEPAGE_ONLY_HOSTS.some((h) => hostname === h);
@@ -59,6 +59,26 @@ export async function middleware(request: NextRequest) {
     url.pathname = "/";
     url.search = "";
     return NextResponse.redirect(url, 302);
+  }
+
+  // ── /manage/* 관리자 보호 (login 페이지·API는 공개) ──
+  if (pathname.startsWith("/manage/") && !pathname.startsWith("/manage/login")) {
+    const sessionCookie = request.cookies.get("tp_manage")?.value;
+    // 간단한 만료 체크만 (HMAC 검증은 server component에서)
+    let valid = false;
+    if (sessionCookie) {
+      const parts = sessionCookie.split(".");
+      if (parts.length === 3) {
+        const expires = parseInt(parts[1], 10);
+        if (expires && expires > Math.floor(Date.now() / 1000)) valid = true;
+      }
+    }
+    if (!valid) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/manage/login";
+      url.searchParams.set("next", pathname);
+      return NextResponse.redirect(url, 302);
+    }
   }
 
   // ── 커스텀 도메인 감지 ──
