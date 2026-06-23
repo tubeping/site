@@ -185,33 +185,21 @@ export default async function ProposalPage({ params }: Props) {
                 </div>
               </div>
 
-              {/* 공구 수수료 (= 크리에이터 수익) */}
+              {/* 판매수수료 (VAT 포함) */}
               <div className="space-y-4 p-5 bg-[#FFF8F8] rounded-xl border border-[#FFE0E0] mb-8">
                 <div className="flex justify-between items-baseline">
-                  <span className="text-sm text-[#666666]">크리에이터 수수료율</span>
+                  <span className="text-sm text-[#666666]">판매수수료 (VAT 포함)</span>
                   <span className="text-2xl font-extrabold text-[#C41E1E]">
                     {marginRate.toFixed(1)}%
                   </span>
                 </div>
                 <div className="flex justify-between items-baseline pt-3 border-t border-[#FFE0E0]">
-                  <span className="text-sm text-[#666666]">건당 공구 수수료</span>
+                  <span className="text-sm text-[#666666]">건당 수수료</span>
                   <span className="text-lg font-bold text-[#111111]">
                     ₩ {num(creatorMargin)}
                   </span>
                 </div>
               </div>
-
-              {/* 배송비 */}
-              {product.supply_shipping_fee !== undefined && (
-                <div className="mb-6 text-sm">
-                  <span className="text-[#666666]">배송비: </span>
-                  <span className="font-medium text-[#111111]">
-                    {product.supply_shipping_fee > 0
-                      ? `₩ ${num(product.supply_shipping_fee)}`
-                      : "무료"}
-                  </span>
-                </div>
-              )}
 
               {/* 상품 상세페이지 버튼 (큰 사이즈) */}
               {detailUrl && (
@@ -292,6 +280,91 @@ export default async function ProposalPage({ params }: Props) {
             <p className="text-xs text-[#999999] mt-4">
               ※ 위 수익은 권장 판매가 기준 예상치이며, 실제 수익은 결제 수수료·배송비·반품률 등에 따라 달라질 수 있습니다.
             </p>
+          </div>
+
+          {/* 공동구매 진행 조건 */}
+          <div className="px-6 sm:px-10 py-8 border-t border-[#F0F0F0]">
+            <h2 className="text-xl font-bold text-[#111111] mb-5">공동구매 진행 조건</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <tbody>
+                  <tr className="border-b border-[#F0F0F0]">
+                    <th className="bg-[#F9FAFB] text-left font-semibold text-[#666666] py-3 px-4 w-1/4">포장 상태</th>
+                    <td className="py-3 px-4 text-[#111111]">공급사 표준 포장 (필요 시 아이스팩 포함)</td>
+                  </tr>
+                  <tr className="border-b border-[#F0F0F0]">
+                    <th className="bg-[#F9FAFB] text-left font-semibold text-[#666666] py-3 px-4">택배사</th>
+                    <td className="py-3 px-4 text-[#111111]">CJ대한통운 (공급사에 따라 변경 가능)</td>
+                  </tr>
+                  <tr className="border-b border-[#F0F0F0]">
+                    <th className="bg-[#F9FAFB] text-left font-semibold text-[#666666] py-3 px-4">배송 기간</th>
+                    <td className="py-3 px-4 text-[#111111]">공구 진행 다음날 출고 (영업일 기준 1~3일 이내 배송)</td>
+                  </tr>
+                  <tr className="border-b border-[#F0F0F0]">
+                    <th className="bg-[#F9FAFB] text-left font-semibold text-[#666666] py-3 px-4">택배비</th>
+                    <td className="py-3 px-4 text-[#111111]">
+                      {product.supply_shipping_fee && product.supply_shipping_fee > 0
+                        ? `₩ ${num(product.supply_shipping_fee)} (도서산간 추가비 별도)`
+                        : "무료배송 (합배송 가능 / 도서산간 추가비 별도)"}
+                    </td>
+                  </tr>
+                  <tr className="border-b border-[#F0F0F0]">
+                    <th className="bg-[#F9FAFB] text-left font-semibold text-[#666666] py-3 px-4">반품 배송비</th>
+                    <td className="py-3 px-4 text-[#111111]">왕복 8,000원 (단, 판매자 귀책 시 무료)</td>
+                  </tr>
+                  <tr className="border-b border-[#F0F0F0]">
+                    <th className="bg-[#F9FAFB] text-left font-semibold text-[#666666] py-3 px-4">판매 링크</th>
+                    <td className="py-3 px-4 text-[#111111]">협의 (스마트스토어·SNS 마케팅 링크 등)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 정산 & 교환·반품 & CS */}
+          <div className="px-6 sm:px-10 py-8 bg-[#F9FAFB] print:bg-white border-t border-[#F0F0F0]">
+            <h2 className="text-xl font-bold text-[#111111] mb-5">정산 · 교환반품 · CS</h2>
+
+            <div className="space-y-6">
+              {/* 정산 방법 */}
+              <div className="bg-white rounded-xl p-5 border border-[#F0F0F0]">
+                <h3 className="text-base font-bold text-[#111111] mb-3">정산 방법</h3>
+                <ul className="text-sm text-[#333333] leading-relaxed space-y-1.5">
+                  <li>· 공동구매 종료일로부터 <strong className="text-[#111111]">15일 이내 정산</strong></li>
+                  <li>· <strong className="text-[#111111]">사업자</strong>: 세금계산서 발행 → 판매 수수료 입금 (부가세 포함)</li>
+                  <li>· <strong className="text-[#111111]">비사업자</strong>: 3.3% 원천징수 후 입금</li>
+                </ul>
+              </div>
+
+              {/* 교환·반품 기준 */}
+              <div className="bg-white rounded-xl p-5 border border-[#F0F0F0]">
+                <h3 className="text-base font-bold text-[#111111] mb-3">교환·반품 기준</h3>
+                <p className="text-sm text-[#333333] mb-2">
+                  ※ 판매자 사유로 인한 경우 100% 교환·반품 가능
+                </p>
+                <div className="text-sm text-[#666666]">
+                  <div className="font-semibold text-[#111111] mb-1.5">교환·반품 불가 사유</div>
+                  <ol className="list-decimal ml-5 space-y-1">
+                    <li>반품 요청 기간 7일이 지난 경우</li>
+                    <li>구매자 책임 사유로 상품이 멸실·훼손된 경우</li>
+                    <li>구매자 책임 사유로 포장이 훼손되어 상품 가치가 현저히 상실된 경우</li>
+                    <li>구매자의 사용·일부 소비로 상품 가치가 현저히 감소한 경우</li>
+                    <li>시간 경과로 재판매가 곤란할 정도로 상품 가치가 감소한 경우</li>
+                  </ol>
+                </div>
+              </div>
+
+              {/* CS 응대 */}
+              <div className="bg-white rounded-xl p-5 border border-[#F0F0F0]">
+                <h3 className="text-base font-bold text-[#111111] mb-3">CS 응대</h3>
+                <ul className="text-sm text-[#333333] leading-relaxed space-y-1.5">
+                  <li>· <strong className="text-[#111111]">TubePing 통합 CS팀</strong>이 1:1 응대 (평일 10:00–18:00)</li>
+                  <li>· 카페24 1:1 문의·카카오톡 채널·이메일 채널 통합 운영</li>
+                  <li>· 배송·교환·환불 전 과정 TubePing이 책임</li>
+                  <li>· 크리에이터·구매자 모두 별도 응대 부담 없음</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           {/* CTA (인쇄 시 숨김) */}
