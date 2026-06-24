@@ -69,6 +69,7 @@ export const metadata: Metadata = {
     google: "rLxhpki-m73eWm1G0Vhv3E51ZwTs54SzhZeMTtAyw4A",
     other: {
       "naver-site-verification": "d35669a74761ebebc181fa4b03c4f37cd744845f",
+      "cliniscope-verify": "cbcjtmq99xgg",
     },
   },
 };
@@ -143,6 +144,9 @@ export default function RootLayout({
           }}
         />
         {children}
+        {/* cliniscope 사이트 검증용 embed */}
+        <div data-cliniscope-blog data-clinic="bonte" />
+        <script src="https://158-247-205-42.sslip.io/embed.js" async />
       </body>
     </html>
   );
