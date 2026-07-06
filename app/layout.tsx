@@ -144,9 +144,6 @@ export default function RootLayout({
           }}
         />
         {children}
-        {/* cliniscope 사이트 검증용 embed */}
-        <div data-cliniscope-blog data-clinic="bonte" />
-        <script src="https://158-247-205-42.sslip.io/embed.js" async />
       </body>
     </html>
   );
