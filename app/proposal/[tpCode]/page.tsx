@@ -205,18 +205,6 @@ export default async function ProposalPage({ params }: Props) {
                 </div>
               </div>
 
-              {/* 상품 상세페이지 버튼 (큰 사이즈) */}
-              {detailUrl && (
-                <a
-                  href={detailUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 bg-[#111111] text-white text-base font-bold px-6 py-3.5 rounded-xl hover:bg-[#333333] transition-colors mb-6"
-                >
-                  🔗 상품 상세 페이지에서 더 보기
-                  <span className="text-sm font-normal opacity-80">↗</span>
-                </a>
-              )}
             </div>
           </div>
 
@@ -230,13 +218,20 @@ export default async function ProposalPage({ params }: Props) {
             </div>
           )}
 
-          {/* 상품 설명 (admin description 우선, 없으면 카페24 description) */}
+          {/* 상품 설명 (admin description 우선, 없으면 카페24 description). HTML 태그 포함 시 렌더링. */}
           {product.description && (
             <div className="px-6 sm:px-10 py-8 border-t border-[#F0F0F0]">
               <h2 className="text-xl font-bold text-[#111111] mb-4">상품 설명</h2>
-              <p className="text-sm sm:text-base text-[#333333] leading-relaxed whitespace-pre-wrap">
-                {product.description}
-              </p>
+              {/^\s*</.test(product.description) ? (
+                <div
+                  className="text-sm sm:text-base text-[#333333] leading-relaxed [&_img]:max-w-full [&_img]:h-auto [&_img]:my-2 [&_img]:block [&_img]:mx-auto [&_p]:my-2"
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
+              ) : (
+                <p className="text-sm sm:text-base text-[#333333] leading-relaxed whitespace-pre-wrap">
+                  {product.description}
+                </p>
+              )}
             </div>
           )}
           {detailHtml && (
